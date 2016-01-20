@@ -29,7 +29,15 @@
 - On peut changer du mode natif au mode VM en pleine exécution, ce qui permet également de s'attacher à un processus. En mode natif, on n'a pas accès aux fonctionnalités de reverse debugging, mais dès qu'on passe en move VM, le reverse debugging devient possible.
 
 
+### BARR et MARRON : TARDIS: Affordable Time-Travel Debugging in Managed Runtimes (2014)
 
+- Exploiter les informations d'une VM afin de diminuer l'overhead de la capture des états (I/O virtuels, gestion de la mémoire, etc.). Ils arrivent à un overhead de 7%.
+- Capture des états à chaque interval de temps et on retourne à l'état sauvegardé le plus proche de celui demandé par l'utilisateur. Cet interval est recalculé dynamiquement afin de l'ajuster pour respecter un critère d'overhead acceptable. (Dynamic Interval Adjustment)
+- Tous les évènements non-déterministes sont sauvegardés (I/O, timers, etc.)
+- Implémente un piggy-backing des snapshots sur le GC
+- Multiplexe tous les threads pour qu'ils ne roulent que sur un CPU
+- Compression des snapshots dans un thread à part
+- Modification de certains bibliothèques (notamment l'API de l'OS pour manipulation de fichier) pour collecter des données servant à reconstruire des états précédents
 
 ### ALTEKAR et STOICA : Output-Deterministic Replay for Multicore Debugging (2009)
 
