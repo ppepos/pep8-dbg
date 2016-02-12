@@ -44,24 +44,24 @@ Cette implémentation supportera le code auto-modifiant.
 
 ## Pour le 4 mars
 
-    * Assembleur
-    * Desassembleur
+* Assembleur
+* Desassembleur
 
 ## Livrable intermédiaire - 24 mars
 
-    * Interpreteur
+* Interpreteur
 
 ## Pour le 8 avril
 
-    * Debogueur
-    * Rétro-débogage
+* Debogueur
+* Rétro-débogage
 
 ## Livrable final - 21 avril
 
-    * Perfectionnement et finalisation du projet
-    * Rédaction du rapport de projet
-    * Préparer la présentation orale
-    * Modification de données à la volée (facultatif selon le temps restant)
+* Perfectionnement et finalisation du projet
+* Rédaction du rapport de projet
+* Préparer la présentation orale
+* Modification de données à la volée (facultatif selon le temps restant)
 
 
 # Revue de littérature
