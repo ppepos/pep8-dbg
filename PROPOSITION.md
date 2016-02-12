@@ -10,17 +10,18 @@ faille de sécurité dans un logiciel pour suivre le déploiement de son code
 injecté dans la mémoire du programme. C'est pour répondre à ces deux besoins
 que nous avons décidé d'élaborer un projet de débogage à reculons. L'aspect
 sécurité informatique nécessite que nous utilisions un langage très bas niveau.
-Puisque le langage assembleur PEP8 est enseigné à l'Université du Québec à
+Puisque le langage assembleur *PEP/8* est enseigné à l'Université du Québec à
 Montréal et que ce langage ne possède qu'un ensemble d'instruction très
 simple, il est un candidat idéal pour développer notre projet dans le cadre
 d'un cours de maîtrise.
 
 # Présentation du projet
 
-L'objectif du projet est de développer un débogueur de langage assembleur *PEP/8*.
+L'objectif du projet est de développer un débogueur du langage assembleur *PEP/8*.
 Le débogueur aura la capacité d'exécuter le programme débogué à sens inverse, ce qui
 permettra au programmeur de retracer la provenance des bogues *a posteriori*. Le débogueur
 supportera le débogage de code mutant.
+
 
 Puisque nous ne partons pas d'un projet existant, nous allons devoir
 commencer par implémenter un assembleur et un désassembleur. De la sorte, 
@@ -29,13 +30,13 @@ un utilisateur pourra fournir un fichier source ou un fichier binaire à l'inter
 
 Pour réaliser le débogueur, il est impératif de construire un environnement d'exécution de
 code machine *PEP/8* qui offre la flexibilité nécessaire pour y ajouter les fonctionnalités de
-débogage mentionnées ci-haut. L'interpréteur va effectuer une capture d'informations lesquelles seront
+débogage mentionnées ci-haut. L'interpréteur va effectuer une capture d'informations, lesquelles seront
 utilisées par le débogueur afin d'effectuer l'exécution inverse du programme.
 
 
-Le débogueur fournira les fonctionnalités normales d'un débogueur soit les *breakpoints*, l'exécution
+Le débogueur fournira les fonctionnalités normales d'un débogueur soit les *breakpoints* et l'exécution
 pas-à-pas. Il permettra d'utiliser ces mêmes fonctionnalités en mode d'exécution inverse.  Pour implémenter
-cette fonctionnalité, nous allons utiliser une technique de capture d'états se basant sur le maintien
+cette dernière fonctionnalité, nous allons utiliser une technique de capture d'états se basant sur le maintien
 des informations permettant la restitution de l'état précédent l'exécution de chaque instruction. 
 Cette implémentation supportera le code auto-modifiant.
 
@@ -58,7 +59,7 @@ Cette implémentation supportera le code auto-modifiant.
 ## Livrable final - 21 avril
 
     * Perfectionnement et finalisation du projet
-    * Rédaction du rapport de projet.
+    * Rédaction du rapport de projet
     * Préparer la présentation orale
     * Modification de données à la volée (facultatif selon le temps restant)
 
@@ -105,10 +106,9 @@ Le troisième article est *An Efficient and Generic Reversible Debugger using th
 Virtual Machine based Approach* (2005) par Koju et al. La technique qu'ils emploient 
 se base sur deux modes d'exécution afin de ne pas occasionner de surcoût en
 performance pour un utilisateur qui veut exécuter le programme sans effectuer de
-débogage et qui peut changer vers un mode débogage lorsqu'il le souhaite.
+débogage. Celui-ci peut changer vers un mode débogage lorsqu'il le souhaite.
 Ce qui nous intéresse particulièrement dans cet article est la capture d'états
 effectués à intervalle de temps dynamiquement ajusté selon une mesure de la durée 
 requise pour la capture d'état et le surcoût toléré. Pour effectuer l'exécution inverse, 
 le débogueur retourne au dernier état capturé et réexécute le code jusqu'au point souhaité.
-
 
