@@ -1,0 +1,30 @@
+[
+	{
+		"mnemonic": "STOP",
+		"bitmask": 0,
+		"bitmaskLength": 8,
+		"length": 1,
+		"addrModes": []
+	},
+	{
+		"mnemonic": "ADDr",
+		"bitmask": 7,
+		"bitmaskLength": 4,
+		"length": 3,
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+	},
+	{
+		"mnemonic": "LDr",
+		"bitmask": 12,
+		"bitmaskLength": 4,
+		"length": 3,
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+	},
+	{
+		"mnemonic": "STr",
+		"bitmask": 14,
+		"bitmaskLength": 4,
+		"length": 3,
+		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"]
+	}
+]
