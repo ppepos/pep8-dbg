@@ -135,6 +135,8 @@ class Instruction
 	var op_str: String
 	var operandes_str = new Array[String]
 	var operandes = new Array[Operande]
+
+	redef fun to_s: String do return [self.op_str, operandes_str.join(",")].join(" ")
 end
 
 class Declaration
