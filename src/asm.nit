@@ -24,12 +24,14 @@ class Pep8Model
 
 			var bitmask = instr_obj.get_or_null("bitmask")
 
-			var bitmask_len = instr_obj.get_or_null("bitmaskLength")
+			var bitmask_shift = instr_obj.get_or_null("bitmaskShift")
+			var has_reg = instr_obj.get_or_null("hasReg")
 			var length = instr_obj.get_or_null("length")
 			var addr_modes_json = instr_obj.get_or_null("addrModes")
+			var length_mode = instr_obj.get_or_null("lengthMode")
 
-			if bitmask == null or bitmask_len == null or length == null or
-				not addr_modes_json isa JsonArray then return false
+			if bitmask == null or bitmask_shift == null or length == null or has_reg == null or
+				length_mode == null or not addr_modes_json isa JsonArray then return false
 
             var addr_modes = new Array[String]
 			for addr_mode in addr_modes_json do
@@ -38,8 +40,9 @@ class Pep8Model
 				addr_modes.push am
 			end
 
+			# Comparison using "has" because for some reasons "abcd" == "abcd" returns false ...
 			self.instruction_set.add(
-				new InstructionDef(mnemonic, bitmask.to_s.to_i, bitmask_len.to_s.to_i, length.to_s.to_i, addr_modes)
+				new InstructionDef(mnemonic, bitmask.to_s.to_i, bitmask_shift.to_s.to_i, has_reg.to_s.has("true"), length.to_s.to_i, addr_modes, length_mode.to_s.to_i)
 			)
 
 		end
@@ -116,9 +119,11 @@ end
 class InstructionDef
 	var mnemonic: String
 	var bitmask: Int
-	var bitmask_length: Int
+	var bitmask_shift: Int
+	var has_reg: Bool
 	var length: Int
 	var addr_modes: Array[String]
+	var length_mode: Int
 end
 
 abstract class AbsInstruction

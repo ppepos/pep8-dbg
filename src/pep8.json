@@ -1,275 +1,353 @@
 [
 	{
 		"mnemonic": "STOP",
+		"hasReg": false,
 		"bitmask": 0,
-		"bitmaskLength": 8,
+		"bitmaskShift": 0,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "RETTR",
+		"hasReg": false,
 		"bitmask": 1,
-		"bitmaskLength": 8,
+		"bitmaskShift": 0,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "MOVSPA",
+		"hasReg": false,
 		"bitmask": 2,
-		"bitmaskLength": 8,
+		"bitmaskShift": 0,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "MOVSPA",
+		"hasReg": false,
 		"bitmask": 3,
-		"bitmaskLength": 8,
+		"bitmaskShift": 0,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "BR",
+		"hasReg": false,
 		"bitmask": 2,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRLE",
+		"hasReg": false,
 		"bitmask": 3,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRLT",
+		"hasReg": false,
 		"bitmask": 4,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BREQ",
+		"hasReg": false,
 		"bitmask": 5,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRNE",
+		"hasReg": false,
 		"bitmask": 6,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRGE",
+		"hasReg": false,
 		"bitmask": 7,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRGT",
+		"hasReg": false,
 		"bitmask": 8,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRV",
+		"hasReg": false,
 		"bitmask": 9,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "BRC",
+		"hasReg": false,
 		"bitmask": 10,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "CALL",
+		"hasReg": false,
 		"bitmask": 11,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "x"]
+		"addrModes": ["i", "x"],
+		"lengthMode": 1
 	},
 	{
 		"mnemonic": "NOTr",
+		"hasReg": true,
 		"bitmask": 12,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "NEGr",
+		"hasReg": true,
 		"bitmask": 13,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "ASLr",
+		"hasReg": true,
 		"bitmask": 14,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "ASRr",
+		"hasReg": true,
 		"bitmask": 15,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "ROLr",
+		"hasReg": true,
 		"bitmask": 16,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "RORr",
+		"hasReg": true,
 		"bitmask": 17,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "NOPn",
+		"hasReg": true,
 		"bitmask": 9,
-		"bitmaskLength": 6,
+		"bitmaskShift": 2,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "NOP",
+		"hasReg": false,
 		"bitmask": 5,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["i"]
+		"addrModes": ["i"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "DECI",
+		"hasReg": false,
 		"bitmask": 6,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "DECO",
+		"hasReg": false,
 		"bitmask": 5,
-		"bitmaskLength": 7,
+		"bitmaskShift": 1,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "STRO",
+		"hasReg": false,
 		"bitmask": 8,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["d", "n", "sf"]
+		"addrModes": ["d", "n", "sf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "CHARI",
+		"hasReg": false,
 		"bitmask": 9,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "CHARO",
+		"hasReg": false,
 		"bitmask": 10,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "RETn",
+		"hasReg": true,
 		"bitmask": 11,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 1,
-		"addrModes": []
+		"addrModes": [],
+		"lengthMode": 0
 	},
 	{
 		"mnemonic": "ADDSP",
+		"hasReg": false,
 		"bitmask": 12,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "SUBSP",
+		"hasReg": false,
 		"bitmask": 13,
-		"bitmaskLength": 5,
+		"bitmaskShift": 3,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "ADDr",
+		"hasReg": true,
 		"bitmask": 7,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "SUBr",
+		"hasReg": true,
 		"bitmask": 8,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "ANDr",
+		"hasReg": true,
 		"bitmask": 9,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "ORr",
+		"hasReg": true,
 		"bitmask": 10,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "CPr",
+		"hasReg": true,
 		"bitmask": 11,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "LDr",
+		"hasReg": true,
 		"bitmask": 12,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "LDBYTEr",
+		"hasReg": true,
 		"bitmask": 13,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "STr",
+		"hasReg": true,
 		"bitmask": 14,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	},
 	{
 		"mnemonic": "STBYTEr",
+		"hasReg": true,
 		"bitmask": 15,
-		"bitmaskLength": 4,
+		"bitmaskShift": 4,
 		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"]
+		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+		"lengthMode": 3
 	}
 ]
