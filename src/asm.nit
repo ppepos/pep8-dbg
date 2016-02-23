@@ -13,6 +13,8 @@ class Pep8Model
 		var fd = new FileReader.open(path)
 		var instr_json_objects = fd.read_all.parse_json
 
+		self.instruction_set = new Array[InstructionDef]
+
 		if not instr_json_objects isa JsonArray then return false
 		for instr_obj in instr_json_objects do
 			if not instr_obj isa JsonObject then return false
@@ -21,22 +23,24 @@ class Pep8Model
 			var mnemonic = mnemonic_obj.to_s
 
 			var bitmask = instr_obj.get_or_null("bitmask")
-			if bitmask == null then return false
 
 			var bitmask_len = instr_obj.get_or_null("bitmaskLength")
 			var length = instr_obj.get_or_null("length")
 			var addr_modes_json = instr_obj.get_or_null("addrModes")
 
+			if bitmask == null or bitmask_len == null or length == null or
+				not addr_modes_json isa JsonArray then return false
 
-			if not addr_modes_json isa JsonArray then return false
-			var addr_modes = new Array[String]
+            var addr_modes = new Array[String]
 			for addr_mode in addr_modes_json do
 				if addr_mode == null then return false
 				var am = addr_mode.to_s
 				addr_modes.push am
 			end
 
-			var instr_def = new InstructionDef(mnemonic, bitmask, bitmask_len, length, addr_modes)
+			self.instruction_set.add(
+				new InstructionDef(mnemonic, bitmask.to_s.to_i, bitmask_len.to_s.to_i, length.to_s.to_i, addr_modes)
+			)
 
 		end
 		return true
