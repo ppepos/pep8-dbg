@@ -1,353 +1,395 @@
-[
-	{
-		"mnemonic": "STOP",
-		"hasReg": false,
-		"bitmask": 0,
-		"bitmaskShift": 0,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "RETTR",
-		"hasReg": false,
-		"bitmask": 1,
-		"bitmaskShift": 0,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "MOVSPA",
-		"hasReg": false,
-		"bitmask": 2,
-		"bitmaskShift": 0,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "MOVSPA",
-		"hasReg": false,
-		"bitmask": 3,
-		"bitmaskShift": 0,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "BR",
-		"hasReg": false,
-		"bitmask": 2,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRLE",
-		"hasReg": false,
-		"bitmask": 3,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRLT",
-		"hasReg": false,
-		"bitmask": 4,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BREQ",
-		"hasReg": false,
-		"bitmask": 5,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRNE",
-		"hasReg": false,
-		"bitmask": 6,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRGE",
-		"hasReg": false,
-		"bitmask": 7,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRGT",
-		"hasReg": false,
-		"bitmask": 8,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRV",
-		"hasReg": false,
-		"bitmask": 9,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "BRC",
-		"hasReg": false,
-		"bitmask": 10,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "CALL",
-		"hasReg": false,
-		"bitmask": 11,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "x"],
-		"lengthMode": 1
-	},
-	{
-		"mnemonic": "NOTr",
-		"hasReg": true,
-		"bitmask": 12,
-		"bitmaskShift": 1,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "NEGr",
-		"hasReg": true,
-		"bitmask": 13,
-		"bitmaskShift": 1,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "ASLr",
-		"hasReg": true,
-		"bitmask": 14,
-		"bitmaskShift": 1,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "ASRr",
-		"hasReg": true,
-		"bitmask": 15,
-		"bitmaskShift": 1,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "ROLr",
-		"hasReg": true,
-		"bitmask": 16,
-		"bitmaskShift": 1,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "RORr",
-		"hasReg": true,
-		"bitmask": 17,
-		"bitmaskShift": 1,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "NOPn",
-		"hasReg": true,
-		"bitmask": 9,
-		"bitmaskShift": 2,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "NOP",
-		"hasReg": false,
-		"bitmask": 5,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["i"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "DECI",
-		"hasReg": false,
-		"bitmask": 6,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "DECO",
-		"hasReg": false,
-		"bitmask": 5,
-		"bitmaskShift": 1,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "STRO",
-		"hasReg": false,
-		"bitmask": 8,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["d", "n", "sf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "CHARI",
-		"hasReg": false,
-		"bitmask": 9,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "CHARO",
-		"hasReg": false,
-		"bitmask": 10,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "RETn",
-		"hasReg": true,
-		"bitmask": 11,
-		"bitmaskShift": 3,
-		"length": 1,
-		"addrModes": [],
-		"lengthMode": 0
-	},
-	{
-		"mnemonic": "ADDSP",
-		"hasReg": false,
-		"bitmask": 12,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "SUBSP",
-		"hasReg": false,
-		"bitmask": 13,
-		"bitmaskShift": 3,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "ADDr",
-		"hasReg": true,
-		"bitmask": 7,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "SUBr",
-		"hasReg": true,
-		"bitmask": 8,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "ANDr",
-		"hasReg": true,
-		"bitmask": 9,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "ORr",
-		"hasReg": true,
-		"bitmask": 10,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "CPr",
-		"hasReg": true,
-		"bitmask": 11,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "LDr",
-		"hasReg": true,
-		"bitmask": 12,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "LDBYTEr",
-		"hasReg": true,
-		"bitmask": 13,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "STr",
-		"hasReg": true,
-		"bitmask": 14,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	},
-	{
-		"mnemonic": "STBYTEr",
-		"hasReg": true,
-		"bitmask": 15,
-		"bitmaskShift": 4,
-		"length": 3,
-		"addrModes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
-		"lengthMode": 3
-	}
-]
+{
+	"__class": "Array[InstructionDef]",
+	"__items": [
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "STOP",
+			"has_reg": false,
+			"bitmask": 0,
+			"bitmask_shift": 0,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "RETTR",
+			"has_reg": false,
+			"bitmask": 1,
+			"bitmask_shift": 0,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "MOVSPA",
+			"has_reg": false,
+			"bitmask": 2,
+			"bitmask_shift": 0,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "MOVFLGA",
+			"has_reg": false,
+			"bitmask": 3,
+			"bitmask_shift": 0,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BR",
+			"has_reg": false,
+			"bitmask": 2,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRLE",
+			"has_reg": false,
+			"bitmask": 3,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRLT",
+			"has_reg": false,
+			"bitmask": 4,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BREQ",
+			"has_reg": false,
+			"bitmask": 5,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRNE",
+			"has_reg": false,
+			"bitmask": 6,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRGE",
+			"has_reg": false,
+			"bitmask": 7,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRGT",
+			"has_reg": false,
+			"bitmask": 8,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRV",
+			"has_reg": false,
+			"bitmask": 9,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "BRC",
+			"has_reg": false,
+			"bitmask": 10,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "CALL",
+			"has_reg": false,
+			"bitmask": 11,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "x"],
+			"length_mode": 1
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "NOT",
+			"has_reg": true,
+			"bitmask": 12,
+			"bitmask_shift": 1,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "NEG",
+			"has_reg": true,
+			"bitmask": 13,
+			"bitmask_shift": 1,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ASL",
+			"has_reg": true,
+			"bitmask": 14,
+			"bitmask_shift": 1,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ASR",
+			"has_reg": true,
+			"bitmask": 15,
+			"bitmask_shift": 1,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ROL",
+			"has_reg": true,
+			"bitmask": 16,
+			"bitmask_shift": 1,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ROR",
+			"has_reg": true,
+			"bitmask": 17,
+			"bitmask_shift": 1,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "NOPn",
+			"has_reg": true,
+			"bitmask": 9,
+			"bitmask_shift": 2,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "NOP",
+			"has_reg": false,
+			"bitmask": 5,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["i"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "DECI",
+			"has_reg": false,
+			"bitmask": 6,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "DECO",
+			"has_reg": false,
+			"bitmask": 5,
+			"bitmask_shift": 1,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "STRO",
+			"has_reg": false,
+			"bitmask": 8,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["d", "n", "sf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "CHARI",
+			"has_reg": false,
+			"bitmask": 9,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "CHARO",
+			"has_reg": false,
+			"bitmask": 10,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "RETn",
+			"has_reg": true,
+			"bitmask": 11,
+			"bitmask_shift": 3,
+			"length": 1,
+			"addr_modes": [],
+			"length_mode": 0
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ADDSP",
+			"has_reg": false,
+			"bitmask": 12,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "SUBSP",
+			"has_reg": false,
+			"bitmask": 13,
+			"bitmask_shift": 3,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ADD",
+			"has_reg": true,
+			"bitmask": 7,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "SUB",
+			"has_reg": true,
+			"bitmask": 8,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "AND",
+			"has_reg": true,
+			"bitmask": 9,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "OR",
+			"has_reg": true,
+			"bitmask": 10,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "CP",
+			"has_reg": true,
+			"bitmask": 11,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "LD",
+			"has_reg": true,
+			"bitmask": 12,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "LDBYTE",
+			"has_reg": true,
+			"bitmask": 13,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "ST",
+			"has_reg": true,
+			"bitmask": 14,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		},
+		{
+			"__class": "InstructionDef",
+			"mnemonic": "STBYTE",
+			"has_reg": true,
+			"bitmask": 15,
+			"bitmask_shift": 4,
+			"length": 3,
+			"addr_modes": ["d", "n", "s", "sf", "x", "sx", "sxf"],
+			"length_mode": 3
+		}
+	]
+}

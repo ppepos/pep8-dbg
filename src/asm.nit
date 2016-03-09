@@ -1,4 +1,12 @@
-import json
+import json::serialization
+
+redef class Deserializer
+	redef fun deserialize_class(name)
+	do
+		if name == "Array[InstructionDef]" then return new Array[InstructionDef].from_deserializer(self)
+		return super
+	end
+end
 
 class Pep8Model
 	var filename: String
@@ -8,45 +16,16 @@ class Pep8Model
 	var labels = new HashMap[String, Int]
 	var instruction_set: Array[InstructionDef] is noinit
 
-	fun load_instruction_set(path: String): Bool
+	fun load_instruction_set(path: String)
 	do
 		var fd = new FileReader.open(path)
-		var instr_json_objects = fd.read_all.parse_json
+		var instr_set_json = fd.read_all
 
-		self.instruction_set = new Array[InstructionDef]
+		var deserializer = new JsonDeserializer(instr_set_json)
+		var instr_set = deserializer.deserialize
+		assert instr_set isa Array[InstructionDef]
 
-		if not instr_json_objects isa JsonArray then return false
-		for instr_obj in instr_json_objects do
-			if not instr_obj isa JsonObject then return false
-			var mnemonic_obj = instr_obj.get_or_null("mnemonic")
-			if mnemonic_obj == null then return false
-			var mnemonic = mnemonic_obj.to_s
-
-			var bitmask = instr_obj.get_or_null("bitmask")
-
-			var bitmask_shift = instr_obj.get_or_null("bitmaskShift")
-			var has_reg = instr_obj.get_or_null("hasReg")
-			var length = instr_obj.get_or_null("length")
-			var addr_modes_json = instr_obj.get_or_null("addrModes")
-			var length_mode = instr_obj.get_or_null("lengthMode")
-
-			if bitmask == null or bitmask_shift == null or length == null or has_reg == null or
-				length_mode == null or not addr_modes_json isa JsonArray then return false
-
-            var addr_modes = new Array[String]
-			for addr_mode in addr_modes_json do
-				if addr_mode == null then return false
-				var am = addr_mode.to_s
-				addr_modes.push am
-			end
-
-			# Comparison using "has" because for some reasons "abcd" == "abcd" returns false ...
-			self.instruction_set.add(
-				new InstructionDef(mnemonic, bitmask.to_s.to_i, bitmask_shift.to_s.to_i, has_reg.to_s.has("true"), length.to_s.to_i, addr_modes, length_mode.to_s.to_i)
-			)
-
-		end
-		return true
+		instruction_set = instr_set
 	end
 
 	fun read_instructions
@@ -74,18 +53,27 @@ class Pep8Model
 
 	fun parse_instr(instr_str: String): nullable AbsInstruction
 	do
-		var op_re = "(\\w+\\s?:)?(\\.?\\w+)\\s".to_re
-		var op: String
 
-		var operandes = new Array[String]
-		var match = instr_str.search(op_re)
-		if match != null then
-			op = match.to_s
-		else
-			return null
+		var matches = instr_str.split_once_on(":")
+
+		if matches.length == 2 then
+			# print "manage_label"
+			instr_str = matches[1].trim
 		end
 
-		return new Instruction(0, "dkghaskdhas")
+		matches = instr_str.split_once_on("\\s+".to_re)
+		var mnemonic = matches[0]
+		var operandes = new Array[String]
+
+		if matches.length > 1 then
+			operandes = matches[1].split_once_on("\\s*,\\s*".to_re)
+		end
+
+		print "{mnemonic}\t{operandes}"
+
+			
+
+		return new Instruction(0, "ADDr")
 	end
 
 	fun load_labels
@@ -117,13 +105,29 @@ class Pep8Model
 end
 
 class InstructionDef
+	serialize
+
+	# Mnemonic representation of instruction ex: "ADDr"
 	var mnemonic: String
+
+	# Unique bitmask for instruction
 	var bitmask: Int
+
+	# Number of bits to shift when identifying instr with bitmask
 	var bitmask_shift: Int
+
+	# If the mnemonic ends with a register ADDr -> ADDA or ADDX
 	var has_reg: Bool
+
+	# Length in bytes of the instruction.
 	var length: Int
+
+	# Allowed addressing modes
 	var addr_modes: Array[String]
+
 	var length_mode: Int
+
+	redef fun to_s do return mnemonic
 end
 
 abstract class AbsInstruction
@@ -136,7 +140,7 @@ class Instruction
 	var operandes_str = new Array[String]
 	var operandes = new Array[Operande]
 
-	redef fun to_s: String do return [self.op_str, operandes_str.join(",")].join(" ")
+	redef fun to_s do return [self.op_str, operandes_str.join(",")].join(" ")
 end
 
 class Declaration
