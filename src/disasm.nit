@@ -26,6 +26,8 @@ end
 
 fun disassemble_next_instruction(byte_stream: Array[Byte], model: Pep8Model, operande_representation: String): nullable Instruction
 do
+	if byte_stream.is_empty then return null
+
 	var inst = disassemble_opcode(byte_stream[0], model.instruction_set)
 
 	if not inst.operandes_str.is_empty then
@@ -77,7 +79,7 @@ do
 		op_str = inst_def.mnemonic
 	end
 
-	var inst = new Instruction(0, op_str)
+	var inst = new Instruction(0, op_str, register)
 
 	if not inst_def.addr_modes.is_empty then
 		# Stub to put the first operand later
@@ -139,8 +141,8 @@ var fname = "01-exemple.pep"
 var model = new Pep8Model(fname)
 
 model.load_instruction_set("pep8.json")
-model.read_instructions
-model.load_labels
+#model.read_instructions
+#model.load_labels
 
 var input = new Array[Byte]
 

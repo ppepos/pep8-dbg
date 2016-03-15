@@ -73,7 +73,7 @@ class Pep8Model
 
 			
 
-		return new Instruction(0, "ADDr")
+		return new Instruction(0, "ADD", "A")
 	end
 
 	fun load_labels
@@ -123,7 +123,7 @@ class InstructionDef
 	var length: Int
 
 	# Allowed addressing modes
-	var addr_modes: Array[String]
+	var addr_modes = new Array[String]
 
 	var length_mode: Int
 
@@ -137,10 +137,16 @@ class Instruction
 	super AbsInstruction
 	var addr: Int
 	var op_str: String
+	var register: nullable String
 	var operandes_str = new Array[String]
 	var operandes = new Array[Operande]
 
-	redef fun to_s do return [self.op_str, operandes_str.join(",")].join(" ")
+	redef fun to_s do
+		var reg = ""
+		if register != null then reg = register.to_s
+
+		return [self.op_str + reg, operandes_str.join(",")].join(" ")
+	end
 end
 
 class Declaration
