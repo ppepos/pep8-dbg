@@ -53,7 +53,6 @@ class Pep8Model
 
 	fun parse_instr(instr_str: String): nullable AbsInstruction
 	do
-
 		var matches = instr_str.split_once_on(":")
 
 		if matches.length == 2 then
@@ -69,11 +68,24 @@ class Pep8Model
 			operandes = matches[1].split_once_on("\\s*,\\s*".to_re)
 		end
 
-		print "{mnemonic}\t{operandes}"
+		var mnemonic_reg = split_mnemonic_and_reg(mnemonic)
 
-			
+		return new Instruction(0, mnemonic_reg[0], mnemonic_reg[1])
+	end
 
-		return new Instruction(0, "ADD", "A")
+	fun split_mnemonic_and_reg(instr_spec_str: String): Array[String]
+	do
+		var result = ["", ""]
+
+		if instr_spec_str != "MOVSPA" and instr_spec_str != "MOVFLGA" and
+			(instr_spec_str.last.to_s == "X" or instr_spec_str.last.to_s == "A") then
+			result[1] = instr_spec_str.last.to_s
+			result[0] = instr_spec_str.substring(0, instr_spec_str.length - 1)
+		else
+			result[0] = instr_spec_str
+		end
+
+		return result
 	end
 
 	fun load_labels
