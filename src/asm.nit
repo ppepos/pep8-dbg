@@ -33,6 +33,7 @@ class Pep8Model
 		file = new FileReader.open(filename)
 
 		var comment_re = "^\\s*([^;]+)".to_re
+		var address = 0
 
 		for src_line in file.read_lines do
 			var match = src_line.search(comment_re)
@@ -42,8 +43,9 @@ class Pep8Model
 					var instr_str = instr_match.to_s.trim
 					lines.push instr_str
 
-					var instr = parse_instr(instr_str)
+					var instr = parse_instr(instr_str, address)
 					instructions.push(instr)
+					address += instr.len
 				end
 			end
 		end
@@ -51,7 +53,7 @@ class Pep8Model
 		file.close
 	end
 
-	fun parse_instr(instr_str: String): nullable AbsInstruction
+	fun parse_instr(instr_str: String, address: Int): nullable AbsInstruction
 	do
 		var matches = instr_str.split_once_on(":")
 
@@ -68,7 +70,7 @@ class Pep8Model
 
 		# TODO: Implement DataInstruction
 		# Data definition : ex. .WORD, .BLOC, .END, etc.
-		if mnemonic.first.to_s == "." then return new DataInstruction
+		if mnemonic.first.to_s == "." then return new DataInstruction(address)
 
 		if matches.length > 1 then
 			operands = matches[1].split_once_on("\\s*,\\s*".to_re)
@@ -79,7 +81,7 @@ class Pep8Model
 		var mnemonic_reg = split_mnemonic_and_reg(mnemonic)
 		var inst_def = get_matching_intruction_def(mnemonic_reg[0])
 
-		return new Instruction(0, mnemonic_reg[0], mnemonic_reg[1], reg, operand, inst_def)
+		return new Instruction(address, mnemonic_reg[0], mnemonic_reg[1], reg, operand, inst_def)
 	end
 
 	fun split_mnemonic_and_reg(instr_spec_str: String): Array[String]
@@ -99,7 +101,6 @@ class Pep8Model
 
 	fun get_matching_intruction_def(mnemonic: String): nullable InstructionDef
 	do
-		print mnemonic
 		for inst_def in self.instruction_set do
 			if inst_def.mnemonic == mnemonic then return inst_def
 		end
@@ -161,11 +162,12 @@ class InstructionDef
 end
 
 abstract class AbsInstruction
+	var addr: Int
+	fun len: Int is abstract
 end
 
 class Instruction
 	super AbsInstruction
-	var addr: Int
 	var op_str: String
 	var register: nullable String
 	var addr_mode: nullable String
@@ -187,10 +189,13 @@ class Instruction
 	end
 
 	fun set_operand(operand: Operand) do self.operand = operand
+	redef fun len do return inst_def.length
 end
 
 class DataInstruction
 	super AbsInstruction
+	# TODO: Compute length
+	redef fun len do return 0
 end
 
 class Declaration
