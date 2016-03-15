@@ -13,7 +13,7 @@ do
 
 		out.add inst.to_s
 
-		if not inst.operandes_str.is_empty then
+		if inst.operand != null then
 			stream_offset += 3
 		else
 			stream_offset += 1
@@ -30,16 +30,9 @@ do
 
 	var inst = disassemble_opcode(byte_stream[0], model.instruction_set)
 
-	if not inst.operandes_str.is_empty then
+	if not inst.inst_def.addr_modes.is_empty then
 		var value = (byte_stream[1].to_i << 8) + byte_stream[2].to_i
-
-		if operande_representation == "hex" then
-			inst.operandes_str[0] = value.to_hex
-		else if operande_representation == "bin" then
-			inst.operandes_str[0] = value.to_base(2, false)
-		else
-			inst.operandes_str[0] = value.to_s
-		end
+		inst.set_operand new Operand(value)
 	end
 
 	return inst
@@ -69,25 +62,9 @@ do
 	# Find the addressing mode
 	if not inst_def.addr_modes.is_empty then
 		addressing_mode = decode_addressing_mode(opcode, inst_def.length_mode)
-
 	end
 
-	# Find the first operand
-	if inst_def.has_reg then
-		op_str = inst_def.mnemonic.replace('r', register.to_s)
-	else
-		op_str = inst_def.mnemonic
-	end
-
-	var inst = new Instruction(0, op_str, register)
-
-	if not inst_def.addr_modes.is_empty then
-		# Stub to put the first operand later
-		inst.operandes_str.add ""
-		inst.operandes_str.add addressing_mode.to_s
-	end
-
-	return inst
+	return new Instruction(0, inst_def.mnemonic, register, addressing_mode, null, inst_def)
 end
 
 fun is_opcode(opcode: Byte, bitmask, bitmask_shift: Int): Bool

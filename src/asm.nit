@@ -62,15 +62,24 @@ class Pep8Model
 
 		matches = instr_str.split_once_on("\\s+".to_re)
 		var mnemonic = matches[0]
-		var operandes = new Array[String]
+		var operands = new Array[String]
+		var operand = null
+		var reg = null
+
+		# TODO: Implement DataInstruction
+		# Data definition : ex. .WORD, .BLOC, .END, etc.
+		if mnemonic.first.to_s == "." then return new DataInstruction
 
 		if matches.length > 1 then
-			operandes = matches[1].split_once_on("\\s*,\\s*".to_re)
+			operands = matches[1].split_once_on("\\s*,\\s*".to_re)
+			operand = new Operand.from_str(operands[0])
+			reg = operands[1]
 		end
 
 		var mnemonic_reg = split_mnemonic_and_reg(mnemonic)
+		var inst_def = get_matching_intruction_def(mnemonic_reg[0])
 
-		return new Instruction(0, mnemonic_reg[0], mnemonic_reg[1])
+		return new Instruction(0, mnemonic_reg[0], mnemonic_reg[1], reg, operand, inst_def)
 	end
 
 	fun split_mnemonic_and_reg(instr_spec_str: String): Array[String]
@@ -86,6 +95,15 @@ class Pep8Model
 		end
 
 		return result
+	end
+
+	fun get_matching_intruction_def(mnemonic: String): nullable InstructionDef
+	do
+		print mnemonic
+		for inst_def in self.instruction_set do
+			if inst_def.mnemonic == mnemonic then return inst_def
+		end
+		return null
 	end
 
 	fun load_labels
@@ -150,21 +168,54 @@ class Instruction
 	var addr: Int
 	var op_str: String
 	var register: nullable String
-	var operandes_str = new Array[String]
-	var operandes = new Array[Operande]
+	var addr_mode: nullable String
+	var operand: nullable Operand
+	var inst_def: nullable InstructionDef
 
 	redef fun to_s do
 		var reg = ""
-		if register != null then reg = register.to_s
+		if self.register != null then reg = register.to_s
 
-		return [self.op_str + reg, operandes_str.join(",")].join(" ")
+		var operands = new Array[String]
+
+		if self.operand != null and self.addr_mode != null then
+			operands.add self.operand.to_s
+			operands.add self.addr_mode.to_s
+		end
+
+		return [self.op_str + reg, operands.join(",")].join(" ")
 	end
+
+	fun set_operand(operand: Operand) do self.operand = operand
+end
+
+class DataInstruction
+	super AbsInstruction
 end
 
 class Declaration
 end
 
-class Operande
+class Operand
+	var value: nullable Int
+	var label_str: nullable String
+
+	init from_str(operand_str: String)
+	do
+		if operand_str.first.is_letter then
+			init(null, operand_str)
+		else
+			init(operand_str.to_i, null)
+		end
+	end
+
+	redef fun to_s do
+		if label_str != null then
+			return label_str.to_s
+		else
+			return value.to_s
+		end
+	end
 end
 
 class SourceLine
