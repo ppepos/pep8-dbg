@@ -50,6 +50,8 @@ class Pep8Model
 			end
 		end
 
+		self.resolve_labels
+
 		file.close
 	end
 
@@ -59,6 +61,7 @@ class Pep8Model
 
 		if matches.length == 2 then
 			# print "manage_label"
+			self.load_label(instr_str, address)
 			instr_str = matches[1].trim
 		end
 
@@ -107,32 +110,28 @@ class Pep8Model
 		return null
 	end
 
-	fun load_labels
+	fun load_label(inst_str: String, address: Int)
 	do
 		var label_decl_re = "^\\s*([^;:\\s]+)\\s*:.*$".to_re
-		var current_addr = 0
 
-		for line in lines do
-			var match = line.search(label_decl_re)
-			if match != null then
-				var tag_match = match.subs[0]
-				if tag_match != null then
-					var tag = tag_match.to_s
-					self.labels[tag] = current_addr
-				end
+		var match = inst_str.search(label_decl_re)
+		if match != null then
+			var tag_match = match.subs[0]
+			if tag_match != null then
+				var tag = tag_match.to_s
+				self.labels[tag] = address
 			end
-
-			var instr_size = get_instr_size(line)
-			current_addr += instr_size
-
 		end
 	end
 
-	fun get_instr_size(instr_str: String): Int
+	fun resolve_labels
 	do
-		return 0
+		for inst in self.instructions do
+			if inst isa Instruction and inst.operand != null and inst.operand.label_str != null then
+				inst.operand.value = self.labels[inst.operand.label_str]
+			end
+		end
 	end
-
 end
 
 class InstructionDef
@@ -233,4 +232,3 @@ var model = new Pep8Model(fname)
 
 model.load_instruction_set("pep8.json")
 model.read_instructions
-model.load_labels
