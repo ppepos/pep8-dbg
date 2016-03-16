@@ -25,7 +25,7 @@ if opt_assemble.value != null then
 	var fname = opt_assemble.value.to_s
 	var model = new Pep8Model(fname)
 
-	model.load_instruction_set("pep8.json")
+	model.load_instruction_set("src/pep8.json")
 	model.read_instructions
 
 	for byte in model.assemble do stdout.write_byte byte
@@ -38,7 +38,7 @@ else if opt_disasm.value != null then
 	var model = new Pep8Model("")
 	var fname = opt_disasm.value.to_s
 
-	model.load_instruction_set("pep8.json")
+	model.load_instruction_set("src/pep8.json")
 	model.read_instructions
 	var reader = new FileReader.open(fname)
 
