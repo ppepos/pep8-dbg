@@ -187,6 +187,8 @@ abstract class AbsInstruction
 	fun len: Int is abstract
 	fun has_label: Bool is abstract
 	fun resolve_label(labels: HashMap[String, Int]) is abstract
+	fun assemble: Array[Byte] is abstract
+
 	init (addr: Int, op_str: String)
 	do
 		self.addr = addr
@@ -230,6 +232,7 @@ class Instruction
 	redef fun len do return inst_def.length
 	redef fun has_label do return self.operand != null and self.operand.label_str != null
 	redef fun resolve_label(labels: HashMap[String, Int]) do self.operand.value = labels[self.operand.label_str]
+	redef fun assemble: Array[Byte] do return new Array[Byte]
 end
 
 class PseudoInstruction
@@ -260,7 +263,7 @@ class PseudoInstruction
 		end
 	end
 
-	fun assemble: nullable Array[Byte]
+	redef fun assemble: Array[Byte]
 	do
 		if self.op_str == ".ADDRSS" then
 			return self.label_dst.to_i.to_two_bytes
@@ -277,7 +280,7 @@ class PseudoInstruction
 		end
 	end
 
-	fun str_to_bytes: nullable Array[Byte]
+	fun str_to_bytes: Array[Byte]
 	do
 		var bytes = new Array[Byte]
 		var stripped_value = self.value.substring(1, self.value.length - 2)
@@ -293,15 +296,11 @@ class PseudoInstruction
 				else if stripped_value.length + 3 > (i + 3) and stripped_value[i+1] == 'x' then
 					bytes.add "0x{stripped_value[i+2]}{stripped_value[i+3]}".to_i.to_b
 					i += 4
-				else
-					return null
 				end
-
-				continue
+			else
+				bytes.add stripped_value[i].bytes[0]
+				i += 1
 			end
-
-			bytes.add stripped_value[i].bytes[0]
-			i += 1
 		end
 
 		return bytes
