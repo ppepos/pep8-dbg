@@ -142,14 +142,7 @@ class Pep8Model
 	fun debug_str: String
 	do
 		var out = new Array[String]
-		for inst in self.instructions do
-			if inst isa Instruction then
-				out.add inst.to_s
-			else if inst isa PseudoInstruction then
-				out.add "{inst.to_s} {inst.assemble.to_s}"
-			end
-		end
-
+		for inst in self.instructions do out.add "{inst.to_s} {inst.assemble.to_s}"
 		return out.join("\n")
 	end
 
@@ -232,7 +225,50 @@ class Instruction
 	redef fun len do return inst_def.length
 	redef fun has_label do return self.operand != null and self.operand.label_str != null
 	redef fun resolve_label(labels: HashMap[String, Int]) do self.operand.value = labels[self.operand.label_str]
-	redef fun assemble: Array[Byte] do return new Array[Byte]
+	redef fun assemble: Array[Byte]
+	do
+		var bytes = new Array[Byte]
+		bytes.add(((self.inst_def.bitmask << self.inst_def.bitmask_shift) + self.encode_addressing_mode + encode_reg).to_b)
+		if not self.inst_def.addr_modes.is_empty then bytes.add_all self.operand.value.to_two_bytes
+		return bytes
+	end
+
+	fun encode_reg: Int do
+		if not self.inst_def.has_reg then return 0
+
+		var bit
+		if self.register == "X" then
+			bit = 1
+		else
+			bit = 0
+		end
+
+		return bit << (self.inst_def.bitmask_shift - 1)
+	end
+
+	fun encode_addressing_mode: Int
+	do
+		if self.inst_def.addr_modes.is_empty then return 0
+
+		if self.addr_mode == "i" then
+			return 0
+		else if self.addr_mode == "d" then
+			return 1
+		else if self.addr_mode == "n" then
+			return 2
+		else if self.addr_mode == "s" then
+			return 3
+		else if self.addr_mode == "sf" then
+			return 4
+		else if self.addr_mode == "x" then
+			return 5
+		else if self.addr_mode == "sx" then
+			return 6
+		else if self.addr_mode == "sxf" then
+			return 7
+		end
+		return 0
+	end
 end
 
 class PseudoInstruction
