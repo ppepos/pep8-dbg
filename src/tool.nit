@@ -15,7 +15,7 @@ opts.parse args
 if opts.errors.not_empty then
 	for error in opts.errors do print error
 	exit 1
-else if opt_help.value then
+else if opt_help.value or args.length == 0 then
 	print "Usage: {program_name} [OPTION] filename\nOptions:"
 	opts.usage
 	exit 0
@@ -31,7 +31,7 @@ if opt_assemble.value != null then
 	for byte in model.assemble do stdout.write_byte byte
 else if opt_disasm.value != null then
 	if opt_nb_bytes.value == null then
-		print "It is mandatory to specify the number of bytes to disassemble"
+		print "It is mandatory to specify the number of bytes to disassemble with '{opt_nb_bytes.names[0]}'"
 		exit 1
 	end
 

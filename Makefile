@@ -1,2 +1,6 @@
-all:
-	pandoc -r markdown -w latex -o contenu.tex contenu.md
+
+all: tools
+
+tools:
+	mkdir -p bin/
+	nitc src/tool.nit -o bin/tool
