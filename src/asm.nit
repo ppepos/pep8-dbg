@@ -146,6 +146,18 @@ class Pep8Model
 		return out.join("\n")
 	end
 
+	fun assemble: Array[Byte]
+	do
+		var bytes = new Array[Byte]
+		for inst in self.instructions do
+			for byte in inst.assemble do
+				bytes.add byte
+			end
+		end
+		return bytes
+	end
+
+
 end
 
 class InstructionDef
