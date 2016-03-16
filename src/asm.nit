@@ -8,6 +8,10 @@ redef class Deserializer
 	end
 end
 
+redef class Int
+	fun to_two_bytes: Array[Byte] do return [(self >> 8).to_b, (self << 24 >> 24).to_b]
+end
+
 class Pep8Model
 	var filename: String
 	var file: FileReader is noinit
@@ -55,25 +59,29 @@ class Pep8Model
 		file.close
 	end
 
-	fun parse_instr(instr_str: String, address: Int): nullable AbsInstruction
+	fun parse_instr(instr_str: String, address: Int): AbsInstruction
 	do
 		var matches = instr_str.split_once_on(":")
+		var trimmed_instr_str = instr_str
 
 		if matches.length == 2 then
-			# print "manage_label"
 			self.load_label(instr_str, address)
-			instr_str = matches[1].trim
+			trimmed_instr_str = matches[1].trim
 		end
 
-		matches = instr_str.split_once_on("\\s+".to_re)
+		matches = trimmed_instr_str.split_once_on("\\s+".to_re)
 		var mnemonic = matches[0]
 		var operands = new Array[String]
 		var operand = null
 		var reg = null
 
-		# TODO: Implement DataInstruction
-		# Data definition : ex. .WORD, .BLOC, .END, etc.
-		if mnemonic.first.to_s == "." then return new DataInstruction(address)
+		# For dot operations as .WORD, .BYTE, etc.
+		if mnemonic.first.to_s == "." then
+			var value = ""
+			if matches.length > 1 then value = matches[1]
+			if mnemonic.to_upper == ".EQUATE" then load_label(instr_str, value.to_i)
+			return new PseudoInstruction(address, mnemonic, value)
+		end
 
 		if matches.length > 1 then
 			operands = matches[1].split_once_on("\\s*,\\s*".to_re)
@@ -127,11 +135,24 @@ class Pep8Model
 	fun resolve_labels
 	do
 		for inst in self.instructions do
-			if inst isa Instruction and inst.operand != null and inst.operand.label_str != null then
-				inst.operand.value = self.labels[inst.operand.label_str]
-			end
+			if inst.has_label then inst.resolve_label(self.labels)
 		end
 	end
+
+	fun debug_str: String
+	do
+		var out = new Array[String]
+		for inst in self.instructions do
+			if inst isa Instruction then
+				out.add inst.to_s
+			else if inst isa PseudoInstruction then
+				out.add "{inst.to_s} {inst.assemble.to_s}"
+			end
+		end
+
+		return out.join("\n")
+	end
+
 end
 
 class InstructionDef
@@ -162,16 +183,33 @@ end
 
 abstract class AbsInstruction
 	var addr: Int
+	var op_str: String
 	fun len: Int is abstract
+	fun has_label: Bool is abstract
+	fun resolve_label(labels: HashMap[String, Int]) is abstract
+	init (addr: Int, op_str: String)
+	do
+		self.addr = addr
+		self.op_str = op_str
+	end
 end
 
 class Instruction
 	super AbsInstruction
-	var op_str: String
 	var register: nullable String
 	var addr_mode: nullable String
 	var operand: nullable Operand
 	var inst_def: nullable InstructionDef
+
+	init (addr: Int, op_str: String, register, addr_mode: nullable String, operand: nullable Operand, inst_def: nullable InstructionDef)
+	do
+		self.addr = addr
+		self.op_str = op_str
+		self.register = register
+		self.addr_mode = addr_mode
+		self.operand = operand
+		self.inst_def = inst_def
+	end
 
 	redef fun to_s do
 		var reg = ""
@@ -188,13 +226,90 @@ class Instruction
 	end
 
 	fun set_operand(operand: Operand) do self.operand = operand
+
 	redef fun len do return inst_def.length
+	redef fun has_label do return self.operand != null and self.operand.label_str != null
+	redef fun resolve_label(labels: HashMap[String, Int]) do self.operand.value = labels[self.operand.label_str]
 end
 
-class DataInstruction
+class PseudoInstruction
 	super AbsInstruction
-	# TODO: Compute length
-	redef fun len do return 0
+	var value: String
+	var label_dst = 0
+
+	init (addr: Int, op_str: String, value: String)
+	do
+		self.addr = addr
+		self.op_str = op_str.to_upper
+		self.value = value
+	end
+
+	redef fun len do
+		if self.op_str == ".ADDRSS" then
+			return 2
+		else if self.op_str == ".ASCII" then
+			return str_to_bytes.length
+		else if self.op_str == ".BLOCK" then
+			return value.to_i
+		else if self.op_str == ".BYTE" then
+			return 1
+		else if self.op_str == ".WORD" then
+			return 2
+		else
+			return 0
+		end
+	end
+
+	fun assemble: nullable Array[Byte]
+	do
+		if self.op_str == ".ADDRSS" then
+			return self.label_dst.to_i.to_two_bytes
+		else if self.op_str == ".ASCII" then
+			return str_to_bytes
+		else if self.op_str == ".BLOCK" then
+			return new Array[Byte].filled_with(0.to_b, self.value.to_i)
+		else if self.op_str == ".BYTE" then
+			return [self.value.to_i.to_b]
+		else if self.op_str == ".WORD" then
+			return self.value.to_i.to_two_bytes
+		else
+			return new Array[Byte]
+		end
+	end
+
+	fun str_to_bytes: nullable Array[Byte]
+	do
+		var bytes = new Array[Byte]
+		var stripped_value = self.value.substring(1, self.value.length - 2)
+		var i = 0
+
+		loop
+			if i >= stripped_value.length then break
+
+			if stripped_value[i] == '\\' then
+				if stripped_value.length > (i + 1) and stripped_value[i+1] == '\\' then
+					bytes.add '\\'.bytes[0]
+					i += 2
+				else if stripped_value.length + 3 > (i + 3) and stripped_value[i+1] == 'x' then
+					bytes.add "0x{stripped_value[i+2]}{stripped_value[i+3]}".to_i.to_b
+					i += 4
+				else
+					return null
+				end
+
+				continue
+			end
+
+			bytes.add stripped_value[i].bytes[0]
+			i += 1
+		end
+
+		return bytes
+	end
+
+	redef fun to_s do return [self.op_str, self.value].join(" ")
+	redef fun has_label do return self.op_str == ".ADDRSS"
+	redef fun resolve_label(labels: HashMap[String, Int]) do self.label_dst = labels[self.value]
 end
 
 class Declaration
@@ -232,3 +347,4 @@ var model = new Pep8Model(fname)
 
 model.load_instruction_set("pep8.json")
 model.read_instructions
+print model.debug_str
