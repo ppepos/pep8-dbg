@@ -235,8 +235,8 @@
 			"__class": "InstructionDef",
 			"mnemonic": "DECO",
 			"has_reg": false,
-			"bitmask": 5,
-			"bitmask_shift": 1,
+			"bitmask": 7,
+			"bitmask_shift": 3,
 			"length": 3,
 			"addr_modes": ["i", "d", "n", "s", "sf", "x", "sx", "sxf"],
 			"length_mode": 3

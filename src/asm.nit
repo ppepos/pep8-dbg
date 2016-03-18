@@ -12,6 +12,42 @@ redef class Int
 	fun to_two_bytes: Array[Byte] do return [(self >> 8).to_b, (self << 24 >> 24).to_b]
 end
 
+redef class String
+	fun str_to_bytes: Array[Byte]
+	do
+		var bytes = new Array[Byte]
+		var stripped_value = self.substring(1, self.length - 2)
+		var i = 0
+
+		loop
+			if i >= stripped_value.length then break
+
+			if stripped_value[i] == '\\' then
+				if stripped_value.length > (i + 1) then
+					if stripped_value[i+1] == '\\' then
+						bytes.add '\\'.bytes[0]
+					else if stripped_value[i+1] == 'n' then
+						bytes.add '\n'.bytes[0]
+					else if stripped_value[i+1] == 'r' then
+						bytes.add '\r'.bytes[0]
+					else if stripped_value[i+1] == 't' then
+						bytes.add '\t'.bytes[0]
+					else if stripped_value.length + 3 > (i + 3) and stripped_value[i+1] == 'x' then
+						bytes.add "0x{stripped_value[i+2]}{stripped_value[i+3]}".to_i.to_b
+						i += 2
+					end
+					i += 2
+				end
+			else
+				bytes.add stripped_value[i].bytes[0]
+				i += 1
+			end
+		end
+
+		return bytes
+	end
+end
+
 class Pep8Model
 	var filename: String
 	var file: FileReader is noinit
@@ -49,6 +85,7 @@ class Pep8Model
 
 					var instr = parse_instr(instr_str, address)
 					instructions.push(instr)
+					print instr.to_s
 					address += instr.len
 				end
 			end
@@ -73,7 +110,7 @@ class Pep8Model
 		var mnemonic = matches[0]
 		var operands = new Array[String]
 		var operand = null
-		var reg = null
+		var addr_mode = null
 
 		# For dot operations as .WORD, .BYTE, etc.
 		if mnemonic.first.to_s == "." then
@@ -86,13 +123,13 @@ class Pep8Model
 		if matches.length > 1 then
 			operands = matches[1].split_once_on("\\s*,\\s*".to_re)
 			operand = new Operand.from_str(operands[0])
-			reg = operands[1]
+			if operands.length > 1 then addr_mode = operands[1]
 		end
 
 		var mnemonic_reg = split_mnemonic_and_reg(mnemonic)
 		var inst_def = get_matching_intruction_def(mnemonic_reg[0])
 
-		return new Instruction(address, mnemonic_reg[0], mnemonic_reg[1], reg, operand, inst_def)
+		return new Instruction(address, mnemonic_reg[0], mnemonic_reg[1], addr_mode, operand, inst_def)
 	end
 
 	fun split_mnemonic_and_reg(instr_spec_str: String): Array[String]
@@ -120,7 +157,8 @@ class Pep8Model
 
 	fun load_label(inst_str: String, address: Int)
 	do
-		var label_decl_re = "^\\s*([^;:\\s]+)\\s*:.*$".to_re
+		var label_decl_re = "^\\s*([^;:\\w]+)\\s*:.*$".to_re
+
 
 		var match = inst_str.search(label_decl_re)
 		if match != null then
@@ -146,9 +184,9 @@ class Pep8Model
 		return out.join("\n")
 	end
 
-	fun assemble: Array[Byte]
+	fun assemble: Bytes
 	do
-		var bytes = new Array[Byte]
+		var bytes = new Bytes.empty
 		for inst in self.instructions do
 			for byte in inst.assemble do
 				bytes.add byte
@@ -233,7 +271,6 @@ class Instruction
 	end
 
 	fun set_operand(operand: Operand) do self.operand = operand
-
 	redef fun len do return inst_def.length
 	redef fun has_label do return self.operand != null and self.operand.label_str != null
 	redef fun resolve_label(labels: HashMap[String, Int]) do self.operand.value = labels[self.operand.label_str]
@@ -299,7 +336,7 @@ class PseudoInstruction
 		if self.op_str == ".ADDRSS" then
 			return 2
 		else if self.op_str == ".ASCII" then
-			return str_to_bytes.length
+			return self.value.str_to_bytes.length
 		else if self.op_str == ".BLOCK" then
 			return value.to_i
 		else if self.op_str == ".BYTE" then
@@ -316,7 +353,7 @@ class PseudoInstruction
 		if self.op_str == ".ADDRSS" then
 			return self.label_dst.to_i.to_two_bytes
 		else if self.op_str == ".ASCII" then
-			return str_to_bytes
+			return self.value.str_to_bytes
 		else if self.op_str == ".BLOCK" then
 			return new Array[Byte].filled_with(0.to_b, self.value.to_i)
 		else if self.op_str == ".BYTE" then
@@ -326,32 +363,6 @@ class PseudoInstruction
 		else
 			return new Array[Byte]
 		end
-	end
-
-	fun str_to_bytes: Array[Byte]
-	do
-		var bytes = new Array[Byte]
-		var stripped_value = self.value.substring(1, self.value.length - 2)
-		var i = 0
-
-		loop
-			if i >= stripped_value.length then break
-
-			if stripped_value[i] == '\\' then
-				if stripped_value.length > (i + 1) and stripped_value[i+1] == '\\' then
-					bytes.add '\\'.bytes[0]
-					i += 2
-				else if stripped_value.length + 3 > (i + 3) and stripped_value[i+1] == 'x' then
-					bytes.add "0x{stripped_value[i+2]}{stripped_value[i+3]}".to_i.to_b
-					i += 4
-				end
-			else
-				bytes.add stripped_value[i].bytes[0]
-				i += 1
-			end
-		end
-
-		return bytes
 	end
 
 	redef fun to_s do return [self.op_str, self.value].join(" ")
@@ -370,6 +381,8 @@ class Operand
 	do
 		if operand_str.first.is_letter then
 			init(null, operand_str)
+		else if operand_str.first == '\'' or operand_str.first == '"' then
+			init(operand_str.str_to_bytes[0].to_i, null)
 		else
 			init(operand_str.to_i, null)
 		end
