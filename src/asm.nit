@@ -85,7 +85,6 @@ class Pep8Model
 
 					var instr = parse_instr(instr_str, address)
 					instructions.push(instr)
-					print instr.to_s
 					address += instr.len
 				end
 			end
