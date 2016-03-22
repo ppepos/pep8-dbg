@@ -210,7 +210,7 @@ class InstructionDef
 	var bitmask_shift: Int
 
 	# If the mnemonic ends with a register ADDr -> ADDA or ADDX
-	var has_reg: Bool
+	var has_suffix: Bool
 
 	# Length in bytes of the instruction.
 	var length: Int
@@ -282,7 +282,7 @@ class Instruction
 	end
 
 	fun encode_reg: Int do
-		if not self.inst_def.has_reg then return 0
+		if not self.inst_def.has_suffix then return 0
 
 		var bit
 		if self.register == "X" then

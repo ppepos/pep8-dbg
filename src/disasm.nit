@@ -55,7 +55,7 @@ class Disassembler
 		if inst_def == null then return null
 
 		# Find the register
-		if inst_def.has_reg then
+		if inst_def.has_suffix then
 			register = decode_reg(opcode, inst_def.bitmask_shift)
 		end
 
