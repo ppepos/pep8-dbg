@@ -39,6 +39,7 @@ redef class String
 					i += 2
 				end
 			else
+				# TODO: Convert to Extended ASCII char
 				bytes.add stripped_value[i].bytes[0]
 				i += 1
 			end
@@ -97,7 +98,14 @@ class Pep8Model
 
 	fun parse_instr(instr_str: String, address: Int): AbsInstruction
 	do
-		var matches = instr_str.split_once_on(":")
+		var matches = new Array[String]
+
+		if instr_str.search("^[a-zA-Z0-9_]+:.*$".to_re) != null then
+			matches = instr_str.split_once_on(":")
+		else
+			matches.add instr_str
+		end
+
 		var trimmed_instr_str = instr_str
 
 		if matches.length == 2 then
@@ -125,30 +133,37 @@ class Pep8Model
 			if operands.length > 1 then addr_mode = operands[1]
 		end
 
-		var mnemonic_reg = split_mnemonic_and_reg(mnemonic)
-		var inst_def = get_matching_intruction_def(mnemonic_reg[0])
+		var mnemonic_suffix = split_mnemonic_and_suffix(mnemonic)
+		var mnemonic_ = mnemonic_suffix[0]
+		var suffix = mnemonic_suffix[1]
 
-		return new Instruction(address, mnemonic_reg[0], mnemonic_reg[1], addr_mode, operand, inst_def)
+		var inst_def = get_matching_intruction_def(mnemonic_, suffix)
+
+		return new Instruction(address, mnemonic_, suffix, addr_mode, operand, inst_def)
 	end
 
-	fun split_mnemonic_and_reg(instr_spec_str: String): Array[String]
+	fun split_mnemonic_and_suffix(instr_spec_str: String): Array[String]
 	do
-		var result = ["", ""]
+		var result = new Array[String]
 
 		if instr_spec_str != "MOVSPA" and instr_spec_str != "MOVFLGA" and
-			(instr_spec_str.last.to_s == "X" or instr_spec_str.last.to_s == "A") then
-			result[1] = instr_spec_str.last.to_s
-			result[0] = instr_spec_str.substring(0, instr_spec_str.length - 1)
+			(instr_spec_str.last.to_s == "X" or instr_spec_str.last.to_s == "A" or instr_spec_str.last.to_s.is_num) then
+			result.push instr_spec_str.substring(0, instr_spec_str.length - 1)
+			result.push instr_spec_str.last.to_s
 		else
-			result[0] = instr_spec_str
+			result.push instr_spec_str
+			result.push ""
 		end
 
 		return result
 	end
 
-	fun get_matching_intruction_def(mnemonic: String): nullable InstructionDef
+	fun get_matching_intruction_def(mnemonic, suffix: String): nullable InstructionDef
 	do
 		for inst_def in self.instruction_set do
+			if not suffix.is_empty and suffix.is_num and not inst_def.has_suffix then
+				continue
+			end
 			if inst_def.mnemonic == mnemonic then return inst_def
 		end
 		return null
@@ -156,12 +171,13 @@ class Pep8Model
 
 	fun load_label(inst_str: String, address: Int)
 	do
-		var label_decl_re = "^\\s*([^;:\\w]+)\\s*:.*$".to_re
-
+		var label_decl_re = "^([a-zA-Z0-9_]+):.*$".to_re
 
 		var match = inst_str.search(label_decl_re)
+
 		if match != null then
 			var tag_match = match.subs[0]
+
 			if tag_match != null then
 				var tag = tag_match.to_s
 				self.labels[tag] = address
@@ -209,7 +225,7 @@ class InstructionDef
 	# Number of bits to shift when identifying instr with bitmask
 	var bitmask_shift: Int
 
-	# If the mnemonic ends with a register ADDr -> ADDA or ADDX
+	# If the mnemonic ends with a suffix ADDr->ADDA, RETn->RET4
 	var has_suffix: Bool
 
 	# Length in bytes of the instruction.
@@ -240,24 +256,24 @@ end
 
 class Instruction
 	super AbsInstruction
-	var register: nullable String
+	var suffix: nullable String
 	var addr_mode: nullable String
 	var operand: nullable Operand
 	var inst_def: nullable InstructionDef
 
-	init (addr: Int, op_str: String, register, addr_mode: nullable String, operand: nullable Operand, inst_def: nullable InstructionDef)
+	init (addr: Int, op_str: String, suffix, addr_mode: nullable String, operand: nullable Operand, inst_def: nullable InstructionDef)
 	do
 		self.addr = addr
 		self.op_str = op_str
-		self.register = register
+		self.suffix = suffix
 		self.addr_mode = addr_mode
 		self.operand = operand
 		self.inst_def = inst_def
 	end
 
 	redef fun to_s do
-		var reg = ""
-		if self.register != null then reg = register.to_s
+		var suffix = ""
+		if self.suffix != null then suffix = suffix.to_s
 
 		var operands = new Array[String]
 
@@ -266,7 +282,7 @@ class Instruction
 			operands.add self.addr_mode.to_s
 		end
 
-		return [self.op_str + reg, operands.join(",")].join(" ")
+		return [self.op_str + suffix, operands.join(",")].join(" ")
 	end
 
 	fun set_operand(operand: Operand) do self.operand = operand
@@ -276,22 +292,25 @@ class Instruction
 	redef fun assemble: Array[Byte]
 	do
 		var bytes = new Array[Byte]
-		bytes.add(((self.inst_def.bitmask << self.inst_def.bitmask_shift) + self.encode_addressing_mode + encode_reg).to_b)
+
+		bytes.add(((self.inst_def.bitmask << self.inst_def.bitmask_shift) + self.encode_addressing_mode + encode_suffix).to_b)
 		if not self.inst_def.addr_modes.is_empty then bytes.add_all self.operand.value.to_two_bytes
 		return bytes
 	end
 
-	fun encode_reg: Int do
+	fun encode_suffix: Int do
 		if not self.inst_def.has_suffix then return 0
 
-		var bit
-		if self.register == "X" then
-			bit = 1
+		var bits
+		if not self.suffix.is_empty and self.suffix.is_num then
+			bits = self.suffix.to_i
+		else if self.suffix == "X" then
+			bits = 1 << (self.inst_def.bitmask_shift - 1)
 		else
-			bit = 0
+			bits = 0
 		end
 
-		return bit << (self.inst_def.bitmask_shift - 1)
+		return bits
 	end
 
 	fun encode_addressing_mode: Int

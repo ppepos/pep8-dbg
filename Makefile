@@ -12,3 +12,11 @@ test:
 	mkdir -p bin/
 	nitc src/tests.nit -o bin/tests
 	bin/tests
+
+test_int:
+	mkdir -p bin/
+	nit src/tests.nit
+	bin/tests
+
+clean:
+	rm -rf bin/

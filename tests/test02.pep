@@ -56,7 +56,7 @@ main3:   SUBSP   2,i         ; #produitC
          CALL    prprod      ; prprod(produitC);
          RET2                ; #produitC
 produitC:.EQUATE 0           ; #2h
-nomC:    .ASCII  "Clé usb\x00"
+nomC:    .ASCII  "Cle usb\x00"
 ; ****** Structure produit
 prCode:  .EQUATE 0           ; #2d code du produit
 prPrix:  .EQUATE 2           ; #2d prix du produit en cents

@@ -11,12 +11,6 @@ for f_prefix in test_file_prefixes do
 
 	printn "{f_prefix}... "
 
-	if f_prefix == "test02" then
-		print "FAIL : Missing NOPn and RETn support"
-		failure = true
-		continue
-	end
-
 	var model = new Pep8Model(test_path + f_prefix + ".pep")
 	model.load_instruction_set("src/pep8.json")
 	model.read_instructions
