@@ -3,6 +3,7 @@ all: tools
 tools:
 	mkdir -p bin/
 	nitc src/tool.nit -o bin/tool
+	nitc src/interpreter.nit -o bin/interpreter
 
 debug:
 	mkdir -p bin/
