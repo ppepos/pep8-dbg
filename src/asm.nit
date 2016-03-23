@@ -53,7 +53,7 @@ class Pep8Model
 	var filename: String
 	var file: FileReader is noinit
 	var lines = new Array[String]
-	var instructions = new Array[nullable AbsInstruction]
+	var instructions = new Array[AbsInstruction]
 	var labels = new HashMap[String, Int]
 	var instruction_set: Array[InstructionDef] is noinit
 
@@ -289,6 +289,7 @@ class Instruction
 	redef fun len do return inst_def.length
 	redef fun has_label do return self.operand != null and self.operand.label_str != null
 	redef fun resolve_label(labels: HashMap[String, Int]) do self.operand.value = labels[self.operand.label_str]
+
 	redef fun assemble: Array[Byte]
 	do
 		var bytes = new Array[Byte]
