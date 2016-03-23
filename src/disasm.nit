@@ -7,7 +7,7 @@ class Disassembler
 		var stream_offset = 0
 		while stream_offset < nb_bytes and stream_offset < byte_stream.length do
 			var stream = byte_stream.subarray(stream_offset, byte_stream.length - stream_offset)
-			var inst = disassemble_next_instruction(stream, model, "")
+			var inst = disassemble_next_instruction(stream, model)
 
 			if inst == null then return out.join("\n")
 
@@ -23,7 +23,7 @@ class Disassembler
 		return out.join("\n")
 	end
 
-	fun disassemble_next_instruction(byte_stream: Array[Byte], model: Pep8Model, operande_representation: String): nullable Instruction
+	fun disassemble_next_instruction(byte_stream: Array[Byte], model: Pep8Model): nullable Instruction
 	do
 		if byte_stream.is_empty then return null
 
