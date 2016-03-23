@@ -274,7 +274,8 @@ class Instruction
 
 	redef fun to_s do
 		var suffix = ""
-		if self.suffix != null then suffix = suffix.to_s
+		var suf_ = self.suffix
+		if suf_ != null then suffix = suf_
 
 		var operands = new Array[String]
 
