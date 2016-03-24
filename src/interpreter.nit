@@ -31,6 +31,15 @@ class Interpreter
 				print "{instr} - executing"
 				return
 
+			else if instr.op_str == "BR" then
+				print "{instr} - executing"
+				exec_br(instr)
+			else if instr.op_str == "BREQ" then
+				print "{instr} - executing"
+				exec_breq(instr)
+			else if instr.op_str == "BRGE" then
+				print "{instr} - executing"
+				exec_brge(instr)
 			else if instr.op_str == "ADD" then
 				print "{instr} - executing"
 				exec_ld(instr)
@@ -133,7 +142,43 @@ class Interpreter
 		return result
 	end
 
-	fun reg_sub(x, y: Int): Int do return reg_add(x, -y)
+	fun reg_sub(x, y: Int): Int do return reg_add(x, (~y) + 1)
+
+	fun exec_br(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+		reg_file.pc.value = addr
+	end
+
+	fun exec_breq(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+
+		# If Zero flag, set PC to addr
+		if reg_file.z.value == 1 then reg_file.pc.value = addr
+	end
+
+	fun exec_brge(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+
+		# If Neg flag unset, set PC to addr
+		print reg_file.n.value
+		if reg_file.n.value == 0 then reg_file.pc.value = addr
+	end
+
+
+	fun exec_add(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		var reg: Register
+
+		if instr.suffix == "A" then
+			reg = reg_file.a
+		else
+			reg = reg_file.x
+		end
+
+		var result = reg_add(reg.value, op_val)
+		reg.value = result
+
+	end
 
 	fun exec_cp(instr: Instruction) do
 
@@ -149,21 +194,6 @@ class Interpreter
 		end
 
 		# print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
-	end
-
-	fun exec_add(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
-		var reg: Register
-
-		if instr.suffix == "A" then
-			reg = reg_file.a
-		else
-			reg = reg_file.x
-		end
-
-		var result = reg_add(reg.value, op_val)
-		reg.value = result
-
 	end
 
 	fun exec_ld(instr: Instruction) do
@@ -223,10 +253,10 @@ class Pep8RegisterFile
 		var v = value % 65536
 
 		# zero flag
-		if value == 0 then z.value = 1 else z.value = 0
+		z.value = if v == 0 then 1 else 0
 
 		# negative flag
-		if v < 0 or v > 32767 then n.value = 1 else n.value = 0
+		n.value = if v >= 32767 then 1 else 0
 	end
 end
 
@@ -238,8 +268,8 @@ class RegisterBit
 	var value = 0
 end
 
-# var model = new Pep8Model("tests/test01.pep")
-var model = new Pep8Model("src/01-exemple.pep")
+var model = new Pep8Model("tests/to-graph.pep")
+# var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
 
