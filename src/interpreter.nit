@@ -55,6 +55,28 @@ class Interpreter
 
 	fun update_pc(last_instr: Instruction) do reg_file.pc.value += last_instr.len
 
+	fun get_imm_value(instr: Instruction): Int do
+
+		var op = instr.operand
+		assert op != null
+
+		var op_val = op.value
+		assert op_val != null
+
+		return op_val
+	end
+
+	fun get_memory_value(addr: Int): Int do
+
+		var value: Int
+		var word = memory.sub(addr, 2)
+		value = word[0].to_i
+		value = value << 8
+		value += word[1].to_i
+
+		return value
+	end
+
 	fun resolve_addr(instr: Instruction): Int do
 		var op = instr.operand
 		assert op != null
@@ -74,21 +96,24 @@ class Interpreter
 		return addr
 	end
 
-	fun get_imm_value(instr: Instruction): Int do
+	fun resolve_value(instr: Instruction): Int do
+		var value: Int
+		var addr: Int
 
-		var op = instr.operand
-		assert op != null
+		if instr.addr_mode == "i" then
+			value = get_imm_value(instr)
+		else
+			addr = resolve_addr(instr)
+			value = get_memory_value(addr)
+		end
 
-		var op_val = op.value
-		assert op_val != null
-
-		return op_val
+		return value
 	end
 
 	fun reg_add(x, y: Int): Int do
 		var result = (x + y) & 0xffff
 
-		var overflow = (x < 32768 and y < 32768 and result >= 32768) or (x >= 3268 and y >= 32768 and result < 32768)
+		var overflow = (x < 32768 and y < 32768 and result >= 32768) or (x >= 32678 and y >= 32768 and result < 32768)
 		if overflow then reg_file.v.value = 1 else reg_file.v.value = 0
 
 		var carry = ((x & 0xffff) + (y & 0xffff)) >> 16
@@ -123,25 +148,14 @@ class Interpreter
 		print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
 	end
 
+	fun exec_add(instr: Instruction) do
+
+	end
+
 	fun exec_ld(instr: Instruction) do
 		var value = 0
-		var addr: Int
 
-		if instr.addr_mode == "i" then
-			var op = instr.operand
-			assert op != null
-
-			var op_val = op.value
-			assert op_val != null
-
-			value = op_val
-		else
-			addr = resolve_addr(instr)
-			var word = memory.sub(addr, 2)
-			value = word[0].to_i
-			value = value << 8
-			value += word[1].to_i
-		end
+		value = resolve_value(instr)
 
 		if instr.suffix == "A" then
 			reg_file.a.value = value
@@ -200,7 +214,8 @@ class RegisterBit
 	var value = 0
 end
 
-var model = new Pep8Model("tests/test01.pep")
+# var model = new Pep8Model("tests/test01.pep")
+var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
 
