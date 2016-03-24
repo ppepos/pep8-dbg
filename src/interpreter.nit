@@ -31,13 +31,17 @@ class Interpreter
 				print instr
 				return
 
-			else if instr.op_str == "LD" then
+			else if instr.op_str == "ADD" then
 				print "{instr} - executing"
 				exec_ld(instr)
 			else if instr.op_str == "CP" then
 				print "{instr} - executing"
 				exec_cp(instr)
+			else if instr.op_str == "LD" then
+				print "{instr} - executing"
+				exec_ld(instr)
 
+			# Tough luck
 			else
 				print "{instr} - not yet implemented"
 			end
@@ -96,7 +100,7 @@ class Interpreter
 		return addr
 	end
 
-	fun resolve_value(instr: Instruction): Int do
+	fun resolve_opernd_value(instr: Instruction): Int do
 		var value: Int
 		var addr: Int
 
@@ -132,30 +136,36 @@ class Interpreter
 		var cmp_value: Int
 		var cmp_reg = instr.suffix
 
-		if instr.addr_mode == "i" then
-			cmp_value = get_imm_value(instr)
-		else
-			cmp_value = 0
-			print "addressing mode not yet implemented"
-		end
+		cmp_value = resolve_opernd_value(instr)
 
 		if cmp_reg == "A" then
 			reg_sub(reg_file.a.value, cmp_value)
-		else
+		else if cmp_reg == "X" then
 			reg_sub(reg_file.x.value, cmp_value)
 		end
 
-		print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
+		# print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
 	end
 
 	fun exec_add(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		var reg: Register
+
+		if instr.suffix == "A" then
+			reg = reg_file.a
+		else
+			reg = reg_file.x
+		end
+
+		var result = reg_add(reg.value, op_val)
+		reg.value = result
 
 	end
 
 	fun exec_ld(instr: Instruction) do
 		var value = 0
 
-		value = resolve_value(instr)
+		value = resolve_opernd_value(instr)
 
 		if instr.suffix == "A" then
 			reg_file.a.value = value
