@@ -28,7 +28,7 @@ class Interpreter
 			update_pc(instr)
 
 			if instr.op_str == "STOP" then
-				print instr
+				print "{instr} - executing"
 				return
 
 			else if instr.op_str == "ADD" then
@@ -40,6 +40,9 @@ class Interpreter
 			else if instr.op_str == "LD" then
 				print "{instr} - executing"
 				exec_ld(instr)
+			else if instr.op_str == "ST" then
+				print "{instr} - executing"
+				exec_st(instr)
 
 			# Tough luck
 			else
@@ -73,6 +76,7 @@ class Interpreter
 	fun get_memory_value(addr: Int): Int do
 
 		var value: Int
+
 		var word = memory.sub(addr, 2)
 		value = word[0].to_i
 		value = value << 8
@@ -163,9 +167,8 @@ class Interpreter
 	end
 
 	fun exec_ld(instr: Instruction) do
-		var value = 0
 
-		value = resolve_opernd_value(instr)
+		var value = resolve_opernd_value(instr)
 
 		if instr.suffix == "A" then
 			reg_file.a.value = value
@@ -174,6 +177,17 @@ class Interpreter
 		end
 
 		reg_file.update_state_regs(value)
+	end
+
+	fun exec_st(instr: Instruction) do
+		# Store suffix in operand value address
+		var addr = resolve_addr(instr)
+
+		var reg: Register
+		if instr.suffix == "A" then reg = reg_file.a else reg = reg_file.x
+
+		memory[addr + 1] = (reg.value & 0xff).to_b
+		memory[addr] = ((reg.value >> 8) & 0xff).to_b
 	end
 end
 
