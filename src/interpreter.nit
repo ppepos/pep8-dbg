@@ -32,11 +32,14 @@ class Interpreter
 				return
 
 			else if instr.op_str == "LD" then
-				print "{instr} executing"
+				print "{instr} - executing"
 				exec_ld(instr)
+			else if instr.op_str == "CP" then
+				print "{instr} - executing"
+				exec_cp(instr)
 
 			else
-				print "{instr} not yet implemented"
+				print "{instr} - not yet implemented"
 			end
 
 		end
@@ -71,6 +74,55 @@ class Interpreter
 		return addr
 	end
 
+	fun get_imm_value(instr: Instruction): Int do
+
+		var op = instr.operand
+		assert op != null
+
+		var op_val = op.value
+		assert op_val != null
+
+		return op_val
+	end
+
+	fun reg_add(x, y: Int): Int do
+		var result = (x + y) & 0xffff
+
+		var overflow = (x < 32768 and y < 32768 and result >= 32768) or (x >= 3268 and y >= 32768 and result < 32768)
+		if overflow then reg_file.v.value = 1 else reg_file.v.value = 0
+
+		var carry = ((x & 0xffff) + (y & 0xffff)) >> 16
+		if carry == 1 then reg_file.c.value =  1 else reg_file.c.value = 0
+
+		# set z and n
+		reg_file.update_state_regs(result)
+
+		return result
+	end
+
+	fun reg_sub(x, y: Int): Int do return reg_add(x, -y)
+
+	fun exec_cp(instr: Instruction) do
+
+		var cmp_value: Int
+		var cmp_reg = instr.suffix
+
+		if instr.addr_mode == "i" then
+			cmp_value = get_imm_value(instr)
+		else
+			cmp_value = 0
+			print "addressing mode not yet implemented"
+		end
+
+		if cmp_reg == "A" then
+			reg_sub(reg_file.a.value, cmp_value)
+		else
+			reg_sub(reg_file.x.value, cmp_value)
+		end
+
+		print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
+	end
+
 	fun exec_ld(instr: Instruction) do
 		var value = 0
 		var addr: Int
@@ -96,6 +148,8 @@ class Interpreter
 		else if instr.suffix == "X" then
 			reg_file.x.value = value
 		end
+
+		reg_file.update_state_regs(value)
 	end
 end
 
@@ -113,6 +167,8 @@ class Pep8RegisterFile
 	# Program Counter
 	var pc = new Register
 
+	# State registers
+
 	# Negative
 	var n = new RegisterBit
 
@@ -124,6 +180,16 @@ class Pep8RegisterFile
 
 	# Carry
 	var c = new RegisterBit
+
+	fun update_state_regs(value: Int) do
+		var v = value % 65536
+
+		# zero flag
+		if value == 0 then z.value = 1 else z.value = 0
+
+		# negative flag
+		if v < 0 or v > 32767 then n.value = 1 else n.value = 0
+	end
 end
 
 class Register
