@@ -138,7 +138,6 @@ class Pep8Model
 		var suffix = mnemonic_suffix[1]
 
 		var inst_def = get_matching_intruction_def(mnemonic_, suffix)
-
 		return new Instruction(address, mnemonic_, suffix, addr_mode, operand, inst_def)
 	end
 
@@ -273,7 +272,8 @@ class Instruction
 
 	redef fun to_s do
 		var suffix = ""
-		if self.suffix != null then suffix = suffix.to_s
+		var suf_ = self.suffix
+		if suf_ != null then suffix = suf_
 
 		var operands = new Array[String]
 

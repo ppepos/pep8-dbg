@@ -41,7 +41,7 @@ class Disassembler
 	fun disassemble_opcode(opcode: Byte, instruction_set: Array[InstructionDef]): nullable Instruction
 	do
 		var inst_def = null
-		var register = null
+		var suffix = null
 		var addressing_mode = null
 		var op_str
 
@@ -54,9 +54,9 @@ class Disassembler
 
 		if inst_def == null then return null
 
-		# Find the register
+		# Find the suffix
 		if inst_def.has_suffix then
-			register = decode_reg(opcode, inst_def.bitmask_shift)
+			suffix = decode_reg(opcode, inst_def.bitmask_shift)
 		end
 
 		# Find the addressing mode
@@ -64,7 +64,7 @@ class Disassembler
 			addressing_mode = decode_addressing_mode(opcode, inst_def.length_mode)
 		end
 
-		return new Instruction(0, inst_def.mnemonic, register, addressing_mode, null, inst_def)
+		return new Instruction(0, inst_def.mnemonic, suffix, addressing_mode, null, inst_def)
 	end
 
 	fun is_opcode(opcode: Byte, bitmask, bitmask_shift: Int): Bool
@@ -76,7 +76,12 @@ class Disassembler
 
 	fun decode_reg(opcode: Byte, bitmask_shift: Int): String
 	do
-		if opcode.to_i & (1 << (bitmask_shift - 1)) == 0 then
+
+		var mask = (2 ** bitmask_shift) - 1
+
+		if opcode.to_i >> bitmask_shift == 9 or opcode.to_i >> bitmask_shift == 11 then
+			return (opcode.to_i & mask).to_s
+		else if opcode.to_i >> (bitmask_shift - 1) & 1 == 0 then
 			return "A"
 		else
 			return "X"
