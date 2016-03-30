@@ -79,7 +79,8 @@ class Disassembler
 
 		var mask = (2 ** bitmask_shift) - 1
 
-		if opcode.to_i >> bitmask_shift == 9 or opcode.to_i >> bitmask_shift == 11 then
+		if (bitmask_shift == 2 and opcode.to_i >> bitmask_shift == 9) or # NOPn
+		   (bitmask_shift == 3 and opcode.to_i >> bitmask_shift == 11) then # RETn
 			return (opcode.to_i & mask).to_s
 		else if opcode.to_i >> (bitmask_shift - 1) & 1 == 0 then
 			return "A"
@@ -95,7 +96,7 @@ class Disassembler
 		if length_mode == 1 then
 			mask = 0x1
 		else
-			mask = 0x3
+			mask = 0x7
 		end
 
 		if opcode.to_i & mask == 0 then
