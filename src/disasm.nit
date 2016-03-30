@@ -7,7 +7,7 @@ class Disassembler
 		var stream_offset = 0
 		while stream_offset < nb_bytes and stream_offset < byte_stream.length do
 			var stream = byte_stream.subarray(stream_offset, byte_stream.length - stream_offset)
-			var inst = disassemble_next_instruction(stream, model, "")
+			var inst = decode_next_instruction(stream, model, "")
 
 			if inst == null then return out.join("\n")
 
@@ -23,11 +23,11 @@ class Disassembler
 		return out.join("\n")
 	end
 
-	fun disassemble_next_instruction(byte_stream: Array[Byte], model: Pep8Model, operande_representation: String): nullable Instruction
+	fun decode_next_instruction(byte_stream: Array[Byte], model: Pep8Model, operande_representation: String): nullable Instruction
 	do
 		if byte_stream.is_empty then return null
 
-		var inst = disassemble_opcode(byte_stream[0], model.instruction_set)
+		var inst = decode_opcode(byte_stream[0], model.instruction_set)
 
 		if not inst.inst_def.addr_modes.is_empty then
 			if byte_stream.length < 3 then return null
@@ -38,7 +38,7 @@ class Disassembler
 		return inst
 	end
 
-	fun disassemble_opcode(opcode: Byte, instruction_set: Array[InstructionDef]): nullable Instruction
+	fun decode_opcode(opcode: Byte, instruction_set: Array[InstructionDef]): nullable Instruction
 	do
 		var inst_def = null
 		var suffix = null
