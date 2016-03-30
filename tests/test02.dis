@@ -1,0 +1,16 @@
+CALL 10,i
+CALL 61,i
+CALL 110,i
+STOP 
+LDA 1,i
+LDX 0,i
+STA 44,x
+LDA 1495,i
+LDX 2,i
+STA 44,x
+LDA 50,i
+LDX 4,i
+STA 44,x
+LDA 44,i
+CALL 155,i
+RET0 

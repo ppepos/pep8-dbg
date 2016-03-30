@@ -1,0 +1,14 @@
+LDA 44,d
+CPA 500,i
+BRGE 30,i
+LDA 42,d
+STA 40,d
+LDA 44,d
+STA 42,d
+ADDA 40,d
+STA 44,d
+BR 3,i
+STRO 46,d
+DECO 44,d
+CHARO 10,i
+STOP 
