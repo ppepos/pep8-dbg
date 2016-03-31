@@ -28,7 +28,7 @@ class Interpreter
 			update_pc(instr)
 
 			if instr.op_str == "STOP" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				return
 
 			else if instr.op_str == "BR" then
@@ -62,10 +62,10 @@ class Interpreter
 				# print "{instr} - executing"
 				exec_st(instr)
 			else if instr.op_str == "DECO" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_deco(instr)
 			else if instr.op_str == "STRO" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_stro(instr)
 			# Tough luck
 			else
@@ -220,7 +220,7 @@ class Interpreter
 
 	fun exec_charo(instr: Instruction) do
 		var op_val = resolve_opernd_value(instr)
-		printn op_val.to_c
+		printn op_val.code_point
 	end
 
 	fun exec_add(instr: Instruction) do
@@ -279,7 +279,7 @@ class Interpreter
 	end
 
 	fun exec_deco(instr: Instruction) do
-		print resolve_opernd_value(instr)
+		printn resolve_opernd_value(instr)
 	end
 
 	fun exec_stro(instr: Instruction) do
