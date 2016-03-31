@@ -61,7 +61,12 @@ class Interpreter
 			else if instr.op_str == "ST" then
 				# print "{instr} - executing"
 				exec_st(instr)
-
+			else if instr.op_str == "DECO" then
+				print "{instr} - executing"
+				exec_deco(instr)
+			else if instr.op_str == "STRO" then
+				print "{instr} - executing"
+				exec_stro(instr)
 			# Tough luck
 			else
 				print "{instr} - not yet implemented"
@@ -271,6 +276,19 @@ class Interpreter
 
 		memory[addr + 1] = (reg.value & 0xff).to_b
 		memory[addr] = ((reg.value >> 8) & 0xff).to_b
+	end
+
+	fun exec_deco(instr: Instruction) do
+		print resolve_opernd_value(instr)
+	end
+
+	fun exec_stro(instr: Instruction) do
+		var ptr = resolve_addr(instr)
+
+		while self.memory[ptr] != 0.to_b do
+			printn self.memory[ptr].ascii
+			ptr += 1
+		end
 	end
 end
 
