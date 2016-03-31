@@ -1,0 +1,4 @@
+bin/*
+
+*.sw[po]
+*.orig
