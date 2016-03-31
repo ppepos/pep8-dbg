@@ -128,13 +128,17 @@ class Interpreter
 	end
 
 	fun reg_add(x, y: Int): Int do
-		var result = (x + y) & 0xffff
+		var result = (x & 0xffff) + (y & 0xffff)
+
+		if result >= 65536 then
+			reg_file.c.value = 1
+			result = result & 0xffff
+		else
+			reg_file.c.value = 0
+		end
 
 		var overflow = (x < 32768 and y < 32768 and result >= 32768) or (x >= 32678 and y >= 32768 and result < 32768)
 		if overflow then reg_file.v.value = 1 else reg_file.v.value = 0
-
-		var carry = ((x & 0xffff) + (y & 0xffff)) >> 16
-		if carry == 1 then reg_file.c.value =  1 else reg_file.c.value = 0
 
 		# set z and n
 		reg_file.update_state_regs(result)
@@ -142,7 +146,7 @@ class Interpreter
 		return result
 	end
 
-	fun reg_sub(x, y: Int): Int do return reg_add(x, (~y) + 1)
+	fun reg_sub(x, y: Int): Int do return reg_add(x & 0xffff, ((~y) + 1) & 0xffff)
 
 	fun exec_br(instr: Instruction) do
 		var addr = resolve_opernd_value(instr)
@@ -193,7 +197,7 @@ class Interpreter
 			reg_sub(reg_file.x.value, cmp_value)
 		end
 
-		# print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
+		print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
 	end
 
 	fun exec_ld(instr: Instruction) do
@@ -250,13 +254,12 @@ class Pep8RegisterFile
 	var c = new RegisterBit
 
 	fun update_state_regs(value: Int) do
-		var v = value % 65536
 
 		# zero flag
-		z.value = if v == 0 then 1 else 0
+		z.value = if value == 0 then 1 else 0
 
 		# negative flag
-		n.value = if v >= 32767 then 1 else 0
+		n.value = if value >= 32767 then 1 else 0
 	end
 end
 
@@ -268,7 +271,7 @@ class RegisterBit
 	var value = 0
 end
 
-var model = new Pep8Model("tests/to-graph.pep")
+var model = new Pep8Model("tests/test_brge.pep")
 # var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
