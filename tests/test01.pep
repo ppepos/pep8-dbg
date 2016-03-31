@@ -3,7 +3,7 @@
 ;       Ph. Gabrini    septembre 2005
 ;
 Fibo:   LDA     somme,d    ;
-Boucle: CPA     5,i      ; while(somme < 500)
+Boucle: CPA     500,i      ; while(somme < 500)
         BRGE    Affiche    ; {
         LDA     dernier,d  ;
         STA     avant,d    ;   avant = dernier;

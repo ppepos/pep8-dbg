@@ -19,7 +19,7 @@ class Interpreter
 
 		loop
 			var next_bytes = memory.sub(reg_file.pc.value, reg_file.pc.value + 3)
-			var instr = dis.disassemble_next_instruction(next_bytes, model)
+			var instr = dis.decode_next_instruction(next_bytes, model)
 
 			# If could not disassemble an instruction, stop
 			if instr == null then return
