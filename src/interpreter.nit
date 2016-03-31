@@ -42,7 +42,7 @@ class Interpreter
 				exec_brge(instr)
 			else if instr.op_str == "ADD" then
 				print "{instr} - executing"
-				exec_ld(instr)
+				exec_add(instr)
 			else if instr.op_str == "CP" then
 				print "{instr} - executing"
 				exec_cp(instr)
@@ -137,7 +137,7 @@ class Interpreter
 			reg_file.c.value = 0
 		end
 
-		var overflow = (x < 32768 and y < 32768 and result >= 32768) or (x >= 32678 and y >= 32768 and result < 32768)
+		var overflow = (x < 32768 and y < 32768 and result >= 32768) or (x >= 32768 and y >= 32768 and result < 32768)
 		if overflow then reg_file.v.value = 1 else reg_file.v.value = 0
 
 		# set z and n
@@ -261,6 +261,9 @@ class Pep8RegisterFile
 		# negative flag
 		n.value = if value >= 32767 then 1 else 0
 	end
+
+	redef fun to_s do return "A: {a.value }\nX : {x.value }\nSP : {sp.value }\nPC : {pc.value }\nN : {n.value }\nZ : {z.value }\nV : {v.value }\nC : {c.value}"
+
 end
 
 class Register
@@ -271,7 +274,7 @@ class RegisterBit
 	var value = 0
 end
 
-var model = new Pep8Model("tests/test_brge.pep")
+var model = new Pep8Model("tests/test01.pep")
 # var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
