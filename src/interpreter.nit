@@ -32,25 +32,34 @@ class Interpreter
 				return
 
 			else if instr.op_str == "BR" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_br(instr)
 			else if instr.op_str == "BREQ" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_breq(instr)
 			else if instr.op_str == "BRGE" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_brge(instr)
+			else if instr.op_str == "DECI" then
+				# print "{instr} - executing"
+				exec_deci(instr)
+			else if instr.op_str == "CHARO" then
+				# print "{instr} - executing"
+				exec_charo(instr)
+			else if instr.op_str == "CHARI" then
+				# print "{instr} - executing"
+				exec_chari(instr)
 			else if instr.op_str == "ADD" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_add(instr)
 			else if instr.op_str == "CP" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_cp(instr)
 			else if instr.op_str == "LD" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_ld(instr)
 			else if instr.op_str == "ST" then
-				print "{instr} - executing"
+				# print "{instr} - executing"
 				exec_st(instr)
 
 			# Tough luck
@@ -164,10 +173,50 @@ class Interpreter
 		var addr = resolve_opernd_value(instr)
 
 		# If Neg flag unset, set PC to addr
-		print reg_file.n.value
 		if reg_file.n.value == 0 then reg_file.pc.value = addr
 	end
 
+	fun exec_deci(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+
+		var str = ""
+		var char: nullable Char
+		var sign_symbol = false
+
+		loop
+			char = stdin.read_char
+			if char == null then break
+			if char == '+' or char == '-' then
+
+				if sign_symbol == true then break
+				str += char.to_s
+				sign_symbol = true
+			else if char >= '0' and char <= '9' then
+				str += char.to_s
+			else
+				break
+			end
+		end
+
+		var dec = str.to_i
+		memory[addr + 1] = (dec & 0xff).to_b
+		memory[addr] = ((dec >> 8) & 0xff).to_b
+	end
+
+	fun exec_chari(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+
+		var char = stdin.read_byte
+		if char == null then char = 0.to_b
+		var chari = char.to_i
+
+		memory[addr] = (chari & 0xff).to_b
+	end
+
+	fun exec_charo(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		printn op_val.to_c
+	end
 
 	fun exec_add(instr: Instruction) do
 		var op_val = resolve_opernd_value(instr)
@@ -197,7 +246,7 @@ class Interpreter
 			reg_sub(reg_file.x.value, cmp_value)
 		end
 
-		print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
+		# print "nzvc: {reg_file.n.value} {reg_file.z.value} {reg_file.v.value} {reg_file.c.value}"
 	end
 
 	fun exec_ld(instr: Instruction) do
