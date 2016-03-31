@@ -138,6 +138,8 @@ class Pep8Model
 		var suffix = mnemonic_suffix[1]
 
 		var inst_def = get_matching_intruction_def(mnemonic_, suffix)
+		assert inst_def != null
+
 		return new Instruction(address, mnemonic_, suffix, addr_mode, operand, inst_def)
 	end
 
@@ -258,9 +260,9 @@ class Instruction
 	var suffix: nullable String
 	var addr_mode: nullable String
 	var operand: nullable Operand
-	var inst_def: nullable InstructionDef
+	var inst_def: InstructionDef
 
-	init (addr: Int, op_str: String, suffix, addr_mode: nullable String, operand: nullable Operand, inst_def: nullable InstructionDef)
+	init (addr: Int, op_str: String, suffix, addr_mode: nullable String, operand: nullable Operand, inst_def: InstructionDef)
 	do
 		self.addr = addr
 		self.op_str = op_str
