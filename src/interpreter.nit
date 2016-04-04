@@ -31,6 +31,9 @@ class Interpreter
 				# print "{instr} - executing"
 				return
 
+			else if instr.op_str == "MOVSPA" then
+				# print "{instr} - executing"
+				exec_movspa(instr)
 			else if instr.op_str == "BR" then
 				# print "{instr} - executing"
 				exec_br(instr)
@@ -40,15 +43,30 @@ class Interpreter
 			else if instr.op_str == "BRGE" then
 				# print "{instr} - executing"
 				exec_brge(instr)
+			else if instr.op_str == "CALL" then
+				# print "{instr} - executing"
+				exec_call(instr)
 			else if instr.op_str == "DECI" then
 				# print "{instr} - executing"
 				exec_deci(instr)
-			else if instr.op_str == "CHARO" then
+			else if instr.op_str == "DECO" then
 				# print "{instr} - executing"
-				exec_charo(instr)
+				exec_deco(instr)
+			else if instr.op_str == "STRO" then
+				# print "{instr} - executing"
+				exec_stro(instr)
 			else if instr.op_str == "CHARI" then
 				# print "{instr} - executing"
 				exec_chari(instr)
+			else if instr.op_str == "CHARO" then
+				# print "{instr} - executing"
+				exec_charo(instr)
+			else if instr.op_str.substring(0, 3) == "RET" then
+				# print "{instr} - executing"
+				exec_retn(instr)
+			else if instr.op_str == "SUBSP" then
+				# print "{instr} - executing"
+				exec_subsp(instr)
 			else if instr.op_str == "ADD" then
 				# print "{instr} - executing"
 				exec_add(instr)
@@ -61,12 +79,7 @@ class Interpreter
 			else if instr.op_str == "ST" then
 				# print "{instr} - executing"
 				exec_st(instr)
-			else if instr.op_str == "DECO" then
-				# print "{instr} - executing"
-				exec_deco(instr)
-			else if instr.op_str == "STRO" then
-				# print "{instr} - executing"
-				exec_stro(instr)
+
 			# Tough luck
 			else
 				print "{instr} - not yet implemented"
@@ -81,6 +94,8 @@ class Interpreter
 		for b in program_mem.length.times do
 			memory[b] = program_mem[b]
 		end
+
+		reg_file.sp.value = 2 ** 15 - 1 #32767
 	end
 
 	fun update_pc(last_instr: Instruction) do reg_file.pc.value += last_instr.len
@@ -96,7 +111,7 @@ class Interpreter
 		return op_val
 	end
 
-	fun get_memory_value(addr: Int): Int do
+	fun read_word(addr: Int): Int do
 
 		var value: Int
 
@@ -120,8 +135,20 @@ class Interpreter
 
 		if instr.addr_mode == "d" then
 			addr = value
+		else if instr.addr_mode == "n" then
+			addr = read_word(value)
+		else if instr.addr_mode == "s" then
+			addr = (reg_file.sp.value + value) & 0xffff
+		else if instr.addr_mode == "sf" then
+			addr = read_word((reg_file.sp.value + value) & 0xffff)
+		else if instr.addr_mode == "x" then
+			addr = (reg_file.x.value + value) & 0xffff
+		else if instr.addr_mode == "sx" then
+			addr = (reg_file.sp.value + value + reg_file.x.value) & 0xffff
+		else if instr.addr_mode == "sxf" then
+			addr = read_word((reg_file.sp.value + value + reg_file.x.value) & 0xffff)
 		else
-			print "addressing mode not yet implemented"
+			print "addressing mode not recognized"
 		end
 
 		return addr
@@ -135,7 +162,7 @@ class Interpreter
 			value = get_imm_value(instr)
 		else
 			addr = resolve_addr(instr)
-			value = get_memory_value(addr)
+			value = read_word(addr)
 		end
 
 		return value
@@ -162,6 +189,15 @@ class Interpreter
 
 	fun reg_sub(x, y: Int): Int do return reg_add(x & 0xffff, ((~y) + 1) & 0xffff)
 
+	fun write_word(addr, value: Int) do
+		memory[addr + 1] = (value & 0xff).to_b
+		memory[addr] = ((value >> 8) & 0xff).to_b
+	end
+
+	fun exec_movspa(instr: Instruction) do
+		reg_file.a.value = reg_file.sp.value
+	end
+
 	fun exec_br(instr: Instruction) do
 		var addr = resolve_opernd_value(instr)
 		reg_file.pc.value = addr
@@ -179,6 +215,14 @@ class Interpreter
 
 		# If Neg flag unset, set PC to addr
 		if reg_file.n.value == 0 then reg_file.pc.value = addr
+	end
+
+	fun exec_call(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+
+		reg_file.sp.value -= 2
+		write_word(reg_file.sp.value, reg_file.pc.value)
+		reg_file.pc.value = op_val & 0xffff
 	end
 
 	fun exec_deci(instr: Instruction) do
@@ -204,8 +248,8 @@ class Interpreter
 		end
 
 		var dec = str.to_i
-		memory[addr + 1] = (dec & 0xff).to_b
-		memory[addr] = ((dec >> 8) & 0xff).to_b
+
+		write_word(addr, dec)
 	end
 
 	fun exec_chari(instr: Instruction) do
@@ -221,6 +265,21 @@ class Interpreter
 	fun exec_charo(instr: Instruction) do
 		var op_val = resolve_opernd_value(instr)
 		printn op_val.code_point
+	end
+
+	fun exec_retn(instr: Instruction) do
+		var n = instr.op_str[instr.op_str.length - 1].to_i
+		var sp = reg_file.sp
+		var pc = reg_file.pc
+
+		sp.value = (sp.value + n) & 0xffff
+		pc.value = read_word(sp.value)
+		sp.value = (sp.value + 2) & 0xffff
+	end
+
+	fun exec_subsp(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		reg_file.sp.value = reg_sub(reg_file.sp.value, op_val)
 	end
 
 	fun exec_add(instr: Instruction) do
@@ -285,8 +344,8 @@ class Interpreter
 	fun exec_stro(instr: Instruction) do
 		var ptr = resolve_addr(instr)
 
-		while self.memory[ptr] != 0.to_b do
-			printn self.memory[ptr].ascii
+		while memory[ptr] != 0.to_b do
+			printn memory[ptr].ascii
 			ptr += 1
 		end
 	end
@@ -341,7 +400,7 @@ class RegisterBit
 	var value = 0
 end
 
-var model = new Pep8Model("tests/test01.pep")
+var model = new Pep8Model("tests/test02.pep")
 # var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
