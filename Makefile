@@ -1,22 +1,20 @@
-all: tools
+FLAGS = --debug
 
-tools:
+all: bin/tool bin/interpreter
+
+bin/tool:
 	mkdir -p bin/
-	nitc src/tool.nit -o bin/tool
-	nitc src/interpreter.nit -o bin/interpreter
+	nitc $(FLAGS) src/tool.nit -o bin/tool
 
-debug:
+bin/interpreter:
 	mkdir -p bin/
-	nitc --debug src/tool.nit -o bin/tool
+	nitc $(FLAGS) src/interpreter.nit -o bin/interpreter
 
-test:
+bin/tests:
 	mkdir -p bin/
 	nitc src/tests.nit -o bin/tests
-	bin/tests
 
-test_int:
-	mkdir -p bin/
-	nit src/tests.nit
+test: bin/tests
 	bin/tests
 
 clean:
