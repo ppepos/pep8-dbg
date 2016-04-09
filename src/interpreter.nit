@@ -11,81 +11,93 @@ class Interpreter
 	# Registers
 	var reg_file: Pep8RegisterFile
 
-	fun execute do
+	var instr_decoder = new Disassembler
 
+	# Returns:
+	# 0 : Execution sucessfully terminated
+	# -1 : Execution error
+	fun execute: Int do
 		init_memory
 
-		var dis = new Disassembler
-
 		loop
-			var next_bytes = memory.sub(reg_file.pc.value, reg_file.pc.value + 3)
-			var instr = dis.decode_next_instruction(next_bytes, model)
+			var exec_result = execute_instr
 
-			# If could not disassemble an instruction, stop
-			if instr == null then return
-
-			# Increment program counter
-			update_pc(instr)
-
-			if instr.op_str == "STOP" then
-				# print "{instr} - executing"
-				return
-
-			else if instr.op_str == "MOVSPA" then
-				# print "{instr} - executing"
-				exec_movspa(instr)
-			else if instr.op_str == "BR" then
-				# print "{instr} - executing"
-				exec_br(instr)
-			else if instr.op_str == "BREQ" then
-				# print "{instr} - executing"
-				exec_breq(instr)
-			else if instr.op_str == "BRGE" then
-				# print "{instr} - executing"
-				exec_brge(instr)
-			else if instr.op_str == "CALL" then
-				# print "{instr} - executing"
-				exec_call(instr)
-			else if instr.op_str == "DECI" then
-				# print "{instr} - executing"
-				exec_deci(instr)
-			else if instr.op_str == "DECO" then
-				# print "{instr} - executing"
-				exec_deco(instr)
-			else if instr.op_str == "STRO" then
-				# print "{instr} - executing"
-				exec_stro(instr)
-			else if instr.op_str == "CHARI" then
-				# print "{instr} - executing"
-				exec_chari(instr)
-			else if instr.op_str == "CHARO" then
-				# print "{instr} - executing"
-				exec_charo(instr)
-			else if instr.op_str.substring(0, 3) == "RET" then
-				# print "{instr} - executing"
-				exec_retn(instr)
-			else if instr.op_str == "SUBSP" then
-				# print "{instr} - executing"
-				exec_subsp(instr)
-			else if instr.op_str == "ADD" then
-				# print "{instr} - executing"
-				exec_add(instr)
-			else if instr.op_str == "CP" then
-				# print "{instr} - executing"
-				exec_cp(instr)
-			else if instr.op_str == "LD" then
-				# print "{instr} - executing"
-				exec_ld(instr)
-			else if instr.op_str == "ST" then
-				# print "{instr} - executing"
-				exec_st(instr)
-
-			# Tough luck
-			else
-				print "{instr} - not yet implemented"
-			end
-
+			if exec_result != 1 then return exec_result
 		end
+	end
+
+	# Returns :
+	# 0 : STOP instruction
+	# 1 : Successfull instruction execution (not STOP)
+	# -1 : Error
+	fun execute_instr: Int do
+		var next_bytes = memory.sub(reg_file.pc.value, reg_file.pc.value + 3)
+		var instr = self.instr_decoder.decode_next_instruction(next_bytes, model)
+
+		# If could not disassemble an instruction, stop
+		if instr == null then return -1
+
+		# Increment program counter
+		update_pc(instr)
+
+		if instr.op_str == "STOP" then
+			# print "{instr} - executing"
+			return 0
+		else if instr.op_str == "MOVSPA" then
+			# print "{instr} - executing"
+			exec_movspa(instr)
+		else if instr.op_str == "BR" then
+			# print "{instr} - executing"
+			exec_br(instr)
+		else if instr.op_str == "BREQ" then
+			# print "{instr} - executing"
+			exec_breq(instr)
+		else if instr.op_str == "BRGE" then
+			# print "{instr} - executing"
+			exec_brge(instr)
+		else if instr.op_str == "CALL" then
+			# print "{instr} - executing"
+			exec_call(instr)
+		else if instr.op_str == "DECI" then
+			# print "{instr} - executing"
+			exec_deci(instr)
+		else if instr.op_str == "DECO" then
+			# print "{instr} - executing"
+			exec_deco(instr)
+		else if instr.op_str == "STRO" then
+			# print "{instr} - executing"
+			exec_stro(instr)
+		else if instr.op_str == "CHARI" then
+			# print "{instr} - executing"
+			exec_chari(instr)
+		else if instr.op_str == "CHARO" then
+			# print "{instr} - executing"
+			exec_charo(instr)
+		else if instr.op_str.substring(0, 3) == "RET" then
+			# print "{instr} - executing"
+			exec_retn(instr)
+		else if instr.op_str == "SUBSP" then
+			# print "{instr} - executing"
+			exec_subsp(instr)
+		else if instr.op_str == "ADD" then
+			# print "{instr} - executing"
+			exec_add(instr)
+		else if instr.op_str == "CP" then
+			# print "{instr} - executing"
+			exec_cp(instr)
+		else if instr.op_str == "LD" then
+			# print "{instr} - executing"
+			exec_ld(instr)
+		else if instr.op_str == "ST" then
+			# print "{instr} - executing"
+			exec_st(instr)
+
+		# Tough luck
+		else
+			print "{instr} - not yet implemented"
+		end
+
+		return 1
 	end
 
 	# Assemble code and place it at the start of virtual memory
@@ -390,6 +402,71 @@ class Pep8RegisterFile
 
 	redef fun to_s do return "A: {a.value }\nX : {x.value }\nSP : {sp.value }\nPC : {pc.value }\nN : {n.value }\nZ : {z.value }\nV : {v.value }\nC : {c.value}"
 
+end
+
+class DebuggerInterpreter
+	super Interpreter
+
+	# Breakpoints list
+	var breakpoints = new HashSet[Int]
+
+	# The interpreter reached a breakpoint
+	var is_trapped = false
+
+	# Allows step by step execution
+	var is_step_by_step = false
+
+	fun memory_chunk(addr, length: Int): Array[Byte] do
+		var result = new Array[Byte]
+
+		if addr < 0 or addr + length < 2 ** 16 then return result
+
+		for i in [addr..addr+length[ do result.add self.memory[i]
+
+		return result
+	end
+
+	fun set_breakpoint(addr: Int) do
+		breakpoints.add addr
+	end
+
+	fun remove_breakpoint(addr: Int) do
+		breakpoints.remove addr
+	end
+
+	fun activate_step_by_step do
+		self.is_step_by_step = true
+	end
+
+	fun deactivate_step_by_step do
+		self.is_step_by_step = false
+	end
+
+	# Returns :
+	# 0 : Execution sucessfully terminated
+	# 1 : Reached a breakpoint
+	# -1 : Execution error
+	redef fun execute: Int do
+		init_memory
+
+		loop
+			if self.breakpoints.has(reg_file.pc.value) then
+				# Allows to resume execution after a trap
+				if self.is_trapped then
+					self.is_trapped = false
+				else
+					self.is_trapped = true
+					return 1
+				end
+			end
+
+			var exec_result = execute_instr
+
+			if exec_result != 1 then return exec_result
+
+			if self.is_step_by_step then return 1
+		end
+	end
 end
 
 class Register
