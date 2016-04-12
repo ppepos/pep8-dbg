@@ -42,7 +42,9 @@ else if opt_disasm.value != null then
 	model.read_instructions
 	var reader = new FileReader.open(fname)
 
-	var disass = new Disassembler
-	print disass.disassemble_stream(reader.read_bytes(opt_nb_bytes.value.to_i), opt_nb_bytes.value.to_i, model)
+	var disass = new Disassembler(model)
+	var byte_stream = new Array[Byte]
+	for byte in reader.read_bytes(opt_nb_bytes.value.to_i) do byte_stream.add byte
+	print disass.disassemble_stream(byte_stream, opt_nb_bytes.value.to_i, false)
 end
 

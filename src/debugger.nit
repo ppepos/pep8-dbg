@@ -1,14 +1,19 @@
 import interpreter
+import disasm
 
 class DebuggerController
 	var interpreter: DebuggerInterpreter
+	var disasm: Disassembler
 
 	init(model: Pep8Model) do
 		var reg_file = new Pep8RegisterFile
-		var interpreter = new DebuggerInterpreter(model, reg_file)
+		self.interpreter = new DebuggerInterpreter(model, reg_file)
+		self.disasm = new Disassembler(model)
 	end
 
-	fun cont do interpreter.execute
+	fun cont do
+		interpreter.execute
+	end
 
 	fun nexti do
 		interpreter.activate_step_by_step
@@ -35,11 +40,129 @@ class DebuggerController
 
 	fun set_breakpoint(addr: Int) do interpreter.set_breakpoint addr
 	fun remove_breakpoint(addr: Int) do interpreter.remove_breakpoint addr
-	fun dump_memory(addr, length: Int): Array[Byte] do return interpreter.memory_chunk(addr, length)
-	fun dump_reg: Pep8RegisterFile do return interpreter.reg_file
+	fun memory(addr, length: Int): Array[Byte] do return interpreter.memory_chunk(addr, length)
+	fun reg_file: Pep8RegisterFile do return interpreter.reg_file
+	fun disassemble(addr, length: Int): String do
+		var mem = memory(addr, length)
+		return self.disasm.disassemble_stream(mem, length, true)
+	end
+	fun run do self.interpreter.execute
 end
 
 class DebuggerCLI
-	fun parse_command do return
-	fun command_loop do return
+	var ctrl: DebuggerController
+
+	init(model: Pep8Model) do
+		self.ctrl = new DebuggerController(model)
+	end
+
+	fun parse_command(input: String) do
+		var tokens = input.split(" ")
+
+		if tokens.is_empty then return
+
+		var cmd = tokens[0]
+
+		if ["b", "break", "breakpoint"].has(cmd) then
+			if tokens.length != 2 or not tokens[1].is_int then
+				print "Usage : {cmd} address"
+			else
+				ctrl.set_breakpoint tokens[1].to_i
+			end
+		else if ["r", "remove"].has(cmd) then
+			if tokens.length != 2 or not tokens[1].is_int then
+				print "Usage : {cmd} address"
+			else
+				ctrl.remove_breakpoint tokens[1].to_i
+			end
+		else if ["ni", "nexti"].has(cmd) then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				ctrl.nexti
+			end
+		else if ["c", "continue"].has(cmd) then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				ctrl.cont
+			end
+		else if ["so", "stepo", "stepover"].has(cmd) then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				ctrl.stepo
+			end
+		else if ["reg", "registers"].has(cmd) then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				print_reg
+			end
+		else if ["dump"].has(cmd) then
+			if tokens.length != 3 or not tokens[1].is_int or not tokens[2].is_int then
+				print "Usage : {cmd} address length"
+			else
+				dump_mem(tokens[1].to_i, tokens[2].to_i)
+			end
+		else if ["d", "disass", "disassemble"].has(cmd) then
+			if tokens.length != 3 or not tokens[1].is_int or not tokens[2].is_int then
+				print "Usage : {cmd} address length"
+			else
+				disass(tokens[1].to_i, tokens[2].to_i)
+			end
+		else if cmd == "run" then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				ctrl.run
+			end
+		else
+			print "Unknown command: {cmd}"
+		end
+
+		print tokens
+	end
+
+	fun print_reg do
+		var regs = ctrl.reg_file
+		print "=========================="
+		print "A : {regs.a.value}"
+		print "X : {regs.x.value}"
+		print "PC : {regs.pc.value}"
+		print "SP : {regs.sp.value}"
+		print "N : {regs.n.value} Z: {regs.z.value} V: {regs.v.value} C: {regs.c.value}"
+		print "=========================="
+	end
+
+	fun dump_mem(addr, len: Int) do
+		var mem = ctrl.memory(addr, len)
+
+		for byte in mem, i in [0..len[ do
+			if i % 16 == 0 then print ""
+			printn "{byte} "
+		end
+	end
+
+	fun disass(addr, len: Int) do
+		print ctrl.disassemble(addr, len)
+	end
+
+	fun command_loop do
+		var input = ""
+
+		loop
+			printn ">"
+			input = stdin.read_line
+			parse_command input
+		end
+	end
 end
+
+var model = new Pep8Model("tests/test03.pep")
+# var model = new Pep8Model("src/01-exemple.pep")
+model.load_instruction_set("src/pep8.json")
+model.read_instructions
+
+var debugger = new DebuggerCLI(model)
+debugger.command_loop

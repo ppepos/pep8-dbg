@@ -11,7 +11,13 @@ class Interpreter
 	# Registers
 	var reg_file: Pep8RegisterFile
 
-	var instr_decoder = new Disassembler
+	var instr_decoder: Disassembler
+
+	init(model: Pep8Model, reg_file: Pep8RegisterFile) do
+		self.model = model
+		self.reg_file = reg_file
+		self.instr_decoder = new Disassembler(model)
+	end
 
 	# Returns:
 	# 0 : Execution sucessfully terminated
@@ -32,7 +38,7 @@ class Interpreter
 	# -1 : Error
 	fun execute_instr: Int do
 		var next_bytes = memory.sub(reg_file.pc.value, reg_file.pc.value + 3)
-		var instr = self.instr_decoder.decode_next_instruction(next_bytes, model)
+		var instr = self.instr_decoder.decode_next_instruction(next_bytes)
 
 		# If could not disassemble an instruction, stop
 		if instr == null then return -1
@@ -419,7 +425,7 @@ class DebuggerInterpreter
 	fun memory_chunk(addr, length: Int): Array[Byte] do
 		var result = new Array[Byte]
 
-		if addr < 0 or addr + length < 2 ** 16 then return result
+		if addr < 0 or addr + length > 2 ** 16 then return result
 
 		for i in [addr..addr+length[ do result.add self.memory[i]
 
@@ -477,7 +483,7 @@ class RegisterBit
 	var value = 0
 end
 
-var model = new Pep8Model("tests/test02.pep")
+var model = new Pep8Model("tests/test03.pep")
 # var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions

@@ -27,10 +27,10 @@ for f_prefix in test_file_prefixes do
 	end
 end
 
-var disasm = new Disassembler
 var model = new Pep8Model("")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
+var disasm = new Disassembler(model)
 
 print ""
 print "Disassembler tests"
@@ -38,10 +38,13 @@ print "Disassembler tests"
 for i in [0..test_file_prefixes.length[ do
 	var fout = new FileReader.open(test_path + test_file_prefixes[i] + ".dis")
 	var fin = new FileReader.open(test_path + test_file_prefixes[i] + ".out")
+	var byte_stream = new Array[Byte]
+
+	for byte in fin.read_bytes(4096) do byte_stream.add byte
 
 	printn "{test_file_prefixes[i]}... "
 
-	var result = disasm.disassemble_stream(fin.read_bytes(4096), test_disasm_len[i], model).to_bytes
+	var result = disasm.disassemble_stream(byte_stream, test_disasm_len[i], false).to_bytes
 	var expected = fout.read_bytes(4096)
 
 	if result != expected then
