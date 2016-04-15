@@ -202,9 +202,10 @@ class DebuggerCLI
 		var input = ""
 
 		loop
-			printn "PEPdb > "
+			printn "PEPdb> "
 			input = stdin.read_line
 			parse_command input
+			if stdin.eof then exit(0)
 		end
 	end
 end
@@ -216,7 +217,6 @@ end
 
 var source_file = args[0]
 var model = new Pep8Model(source_file)
-# var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
 
