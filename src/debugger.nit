@@ -5,10 +5,15 @@ class DebuggerController
 	var interpreter: DebuggerInterpreter
 	var disasm: Disassembler
 
-	init(model: Pep8Model) do
+	init do interpreter.load_image
+
+	init with_model(model: Pep8Model) do
 		var reg_file = new Pep8RegisterFile
-		self.interpreter = new DebuggerInterpreter(model, reg_file)
-		self.disasm = new Disassembler(model)
+		disasm = new Disassembler(model)
+
+		interpreter = new DebuggerInterpreter(model, reg_file)
+
+		init(interpreter, disasm)
 	end
 
 	fun cont do
@@ -53,8 +58,9 @@ end
 class DebuggerCLI
 	var ctrl: DebuggerController
 
-	init(model: Pep8Model) do
-		self.ctrl = new DebuggerController(model)
+	init with_model(model: Pep8Model) do
+		var ctrl = new DebuggerController.with_model(model)
+		init(ctrl)
 	end
 
 	fun parse_command(input: String) do
@@ -137,10 +143,15 @@ class DebuggerCLI
 				print "Breakpoints : "
 				print ctrl.breakpoints
 			end
+		else if ["q", "quit"].has(cmd) then
+			if tokens.length != 1 then
+				print "Usage: {cmd}"
+			else
+				exit(0)
+			end
 		else
 			print "Unknown command: {cmd}"
 		end
-
 	end
 
 	fun print_reg do
@@ -169,6 +180,7 @@ class DebuggerCLI
 		print "disass address length : Disassemble instructions"
 		print "run                   : Run the program"
 		print "help                  : Print this menu"
+		print "quit                  : Exit the debugger"
 		print "====================================================="
 	end
 
@@ -190,17 +202,23 @@ class DebuggerCLI
 		var input = ""
 
 		loop
-			printn ">"
+			printn "PEPdb > "
 			input = stdin.read_line
 			parse_command input
 		end
 	end
 end
 
-var model = new Pep8Model("tests/test03.pep")
+if args.length != 1 then
+	print "Usage: {program_name} <source_file.pep>"
+	exit(1)
+end
+
+var source_file = args[0]
+var model = new Pep8Model(source_file)
 # var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
 
-var debugger = new DebuggerCLI(model)
+var debugger = new DebuggerCLI.with_model(model)
 debugger.command_loop
