@@ -249,7 +249,7 @@ class Interpreter
 	end
 
 	fun exec_deci(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_addr(instr)
 
 		var str = ""
 		var char: nullable Char
@@ -276,7 +276,7 @@ class Interpreter
 	end
 
 	fun exec_chari(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_addr(instr)
 
 		var char = stdin.read_byte
 		if char == null then char = 0.to_b
@@ -356,8 +356,7 @@ class Interpreter
 		var reg: Register
 		if instr.suffix == "A" then reg = reg_file.a else reg = reg_file.x
 
-		memory[addr + 1] = (reg.value & 0xff).to_b
-		memory[addr] = ((reg.value >> 8) & 0xff).to_b
+		write_word(addr, reg.value)
 	end
 
 	fun exec_deco(instr: Instruction) do
