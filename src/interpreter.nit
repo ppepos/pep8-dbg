@@ -430,7 +430,7 @@ class DebuggerInterpreter
 	super Interpreter
 
 	# Breakpoints list
-	var breakpoints = new HashSet[Int]
+	var breakpoints_ = new HashSet[Int]
 
 	# The interpreter reached a breakpoint
 	var is_trapped = false
@@ -451,12 +451,14 @@ class DebuggerInterpreter
 	end
 
 	fun set_breakpoint(addr: Int) do
-		breakpoints.add addr
+		breakpoints_.add addr
 	end
 
 	fun remove_breakpoint(addr: Int) do
-		breakpoints.remove addr
+		breakpoints_.remove addr
 	end
+
+	fun breakpoints: Array[Int] do return breakpoints_.to_a
 
 	fun activate_step_by_step do
 		self.is_step_by_step = true

@@ -40,6 +40,7 @@ class DebuggerController
 
 	fun set_breakpoint(addr: Int) do interpreter.set_breakpoint addr
 	fun remove_breakpoint(addr: Int) do interpreter.remove_breakpoint addr
+	fun breakpoints: Array[Int] do return interpreter.breakpoints
 	fun memory(addr, length: Int): Array[Byte] do return interpreter.memory_chunk(addr, length)
 	fun reg_file: Pep8RegisterFile do return interpreter.reg_file
 	fun disassemble(addr, length: Int): String do
@@ -117,11 +118,29 @@ class DebuggerCLI
 			else
 				ctrl.run
 			end
+		else if ["d", "disass", "disassemble"].has(cmd) then
+			if tokens.length != 3 or not tokens[1].is_int or not tokens[2].is_int then
+				print "Usage : {cmd} address length"
+			else
+				disass(tokens[1].to_i, tokens[2].to_i)
+			end
+		else if ["h", "help", "?"].has(cmd) then
+			if tokens.length != 1 then
+				print "Usage : {cmd}"
+			else
+				print_help
+			end
+		else if ["listbp", "list"].has(cmd) then
+			if tokens.length != 1 then
+				print "Usage : {cmd}"
+			else
+				print "Breakpoints : "
+				print ctrl.breakpoints
+			end
 		else
 			print "Unknown command: {cmd}"
 		end
 
-		print tokens
 	end
 
 	fun print_reg do
@@ -135,6 +154,24 @@ class DebuggerCLI
 		print "=========================="
 	end
 
+	fun print_help do
+		print "====================================================="
+		print "                    COMMAND LIST"
+		print "====================================================="
+		print "break address         : Add a breakpoint"
+		print "remove address        : Removes a breakpoint"
+		print "list                  : List all breakpoints"
+		print "nexti                 : Break to next instruction"
+		print "continue              : Resume execution"
+		print "stepo                 : Step over function calls"
+		print "reg                   : Print the registers"
+		print "dump address length   : Dump memory"
+		print "disass address length : Disassemble instructions"
+		print "run                   : Run the program"
+		print "help                  : Print this menu"
+		print "====================================================="
+	end
+
 	fun dump_mem(addr, len: Int) do
 		var mem = ctrl.memory(addr, len)
 
@@ -142,6 +179,7 @@ class DebuggerCLI
 			if i % 16 == 0 then print ""
 			printn "{byte} "
 		end
+		print ""
 	end
 
 	fun disass(addr, len: Int) do
