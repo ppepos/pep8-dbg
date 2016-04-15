@@ -52,55 +52,44 @@ class Interpreter
 		update_pc(instr)
 
 		if instr.op_str == "STOP" then
-			# print "{instr} - executing"
 			return 0
 		else if instr.op_str == "MOVSPA" then
-			# print "{instr} - executing"
 			exec_movspa(instr)
 		else if instr.op_str == "BR" then
-			# print "{instr} - executing"
 			exec_br(instr)
 		else if instr.op_str == "BREQ" then
-			# print "{instr} - executing"
 			exec_breq(instr)
+		else if instr.op_str == "BRNE" then
+			exec_brne(instr)
 		else if instr.op_str == "BRGE" then
-			# print "{instr} - executing"
 			exec_brge(instr)
 		else if instr.op_str == "CALL" then
-			# print "{instr} - executing"
 			exec_call(instr)
 		else if instr.op_str == "DECI" then
-			# print "{instr} - executing"
 			exec_deci(instr)
 		else if instr.op_str == "DECO" then
-			# print "{instr} - executing"
 			exec_deco(instr)
 		else if instr.op_str == "STRO" then
-			# print "{instr} - executing"
 			exec_stro(instr)
 		else if instr.op_str == "CHARI" then
-			# print "{instr} - executing"
 			exec_chari(instr)
 		else if instr.op_str == "CHARO" then
-			# print "{instr} - executing"
 			exec_charo(instr)
 		else if instr.op_str.substring(0, 3) == "RET" then
-			# print "{instr} - executing"
 			exec_retn(instr)
 		else if instr.op_str == "SUBSP" then
-			# print "{instr} - executing"
 			exec_subsp(instr)
 		else if instr.op_str == "ADD" then
-			# print "{instr} - executing"
 			exec_add(instr)
+		else if instr.op_str == "SUB" then
+			exec_sub(instr)
+		else if instr.op_str == "AND" then
+			exec_and(instr)
 		else if instr.op_str == "CP" then
-			# print "{instr} - executing"
 			exec_cp(instr)
 		else if instr.op_str == "LD" then
-			# print "{instr} - executing"
 			exec_ld(instr)
 		else if instr.op_str == "ST" then
-			# print "{instr} - executing"
 			exec_st(instr)
 
 		# Tough luck
@@ -233,6 +222,13 @@ class Interpreter
 		if reg_file.z.value == 1 then reg_file.pc.value = addr
 	end
 
+	fun exec_brne(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+
+		# In not zero, set PC to addr
+		if reg_file.z.value != 1 then reg_file.pc.value = addr
+	end
+
 	fun exec_brge(instr: Instruction) do
 		var addr = resolve_opernd_value(instr)
 
@@ -317,7 +313,36 @@ class Interpreter
 
 		var result = reg_add(reg.value, op_val)
 		reg.value = result
+	end
 
+	fun exec_sub(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		var reg: Register
+
+		if instr.suffix == "A" then
+			reg = reg_file.a
+		else
+			reg = reg_file.x
+		end
+
+		var result = reg_sub(reg.value, op_val)
+		reg.value = result
+	end
+
+	fun exec_and(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		var reg: Register
+
+		if instr.suffix == "A" then
+			reg = reg_file.a
+		else
+			reg = reg_file.x
+		end
+
+		op_val = op_val & 0xFFFF
+		var result = op_val & reg.value
+		reg_file.n.value = if result > 32768 then 1 else 0
+		reg_file.z.value = if result == 0 then 1 else 0
 	end
 
 	fun exec_cp(instr: Instruction) do
