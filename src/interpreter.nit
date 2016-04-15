@@ -426,6 +426,22 @@ class Pep8RegisterFile
 	# Carry
 	var c = new RegisterBit
 
+	fun copy: Pep8RegisterFile do
+
+		var reg_file = new Pep8RegisterFile
+
+		reg_file.a.value = self.a.value
+		reg_file.x.value = self.x.value
+		reg_file.sp.value = self.sp.value
+		reg_file.pc.value = self.pc.value
+		reg_file.n.value = self.n.value
+		reg_file.z.value = self.z.value
+		reg_file.v.value = self.v.value
+		reg_file.c.value = self.c.value
+
+		return reg_file
+	end
+
 	fun update_state_regs(value: Int) do
 
 		# zero flag
@@ -450,6 +466,20 @@ class Pep8RegisterFile
 
 end
 
+class InstructionDiff
+	# var saved_reg_file: Pep8RegisterFile
+	var affected_address: Int
+	var saved_bytes: Int
+	var saved_reg_file: Pep8RegisterFile is private writable(set_saved_reg)
+
+
+	# fun saved_reg_file: Pep8RegisterFile do return self.saved_reg_file
+	fun saved_reg_file=(reg_file: Pep8RegisterFile) do
+	 	self.set_saved_reg(reg_file.copy)
+	end
+
+end
+
 class DebuggerInterpreter
 	super Interpreter
 
@@ -463,6 +493,8 @@ class DebuggerInterpreter
 	var is_step_by_step = false
 
 	var is_started = false
+
+	var history = new Array[InstructionDiff]
 
 	fun memory_chunk(addr, length: Int): Array[Byte] do
 		var result = new Array[Byte]
@@ -529,6 +561,111 @@ class DebuggerInterpreter
 			if self.is_step_by_step then return 1
 		end
 	end
+
+	fun save_diff(instr: Instruction) do
+		reg_file.a.value = reg_file.sp.value
+		var addr = resolve_opernd_value(instr)
+		var bytes = read_word(addr)
+		var diff = new InstructionDiff(addr, bytes, reg_file.copy)
+		self.history.push(diff)
+	end
+
+
+	redef fun exec_movspa(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_br(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_breq(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_brne(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_brge(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_call(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_deci(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_chari(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_charo(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_retn(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_subsp(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_add(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_sub(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_and(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_cp(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_ld(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_st(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_deco(instr) do
+		save_diff(instr)
+		super
+	end
+
+	redef fun exec_stro(instr) do
+		save_diff(instr)
+		super
+	end
+
 end
 
 class Register
