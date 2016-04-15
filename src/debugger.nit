@@ -46,7 +46,7 @@ class DebuggerController
 		var mem = memory(addr, length)
 		return self.disasm.disassemble_stream(mem, length, true)
 	end
-	fun run do self.interpreter.execute
+	fun run do self.interpreter.start
 end
 
 class DebuggerCLI

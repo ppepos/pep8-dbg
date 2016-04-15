@@ -19,11 +19,16 @@ class Interpreter
 		self.instr_decoder = new Disassembler(model)
 	end
 
+	fun start do
+		load_image
+		self.reg_file.reset
+		execute
+	end
+
 	# Returns:
 	# 0 : Execution sucessfully terminated
 	# -1 : Execution error
 	fun execute: Int do
-		init_memory
 
 		loop
 			var exec_result = execute_instr
@@ -107,7 +112,7 @@ class Interpreter
 	end
 
 	# Assemble code and place it at the start of virtual memory
-	fun init_memory do
+	fun load_image do
 		var program_mem = model.assemble
 		for b in program_mem.length.times do
 			memory[b] = program_mem[b]
@@ -406,6 +411,17 @@ class Pep8RegisterFile
 		n.value = if value >= 32767 then 1 else 0
 	end
 
+	fun reset do
+		 a = new Register
+		 x = new Register
+		 sp = new Register
+		 pc = new Register
+		 n = new RegisterBit
+		 z = new RegisterBit
+		 v = new RegisterBit
+		 c = new RegisterBit
+	end
+
 	redef fun to_s do return "A: {a.value }\nX : {x.value }\nSP : {sp.value }\nPC : {pc.value }\nN : {n.value }\nZ : {z.value }\nV : {v.value }\nC : {c.value}"
 
 end
@@ -421,6 +437,8 @@ class DebuggerInterpreter
 
 	# Allows step by step execution
 	var is_step_by_step = false
+
+	var is_started = false
 
 	fun memory_chunk(addr, length: Int): Array[Byte] do
 		var result = new Array[Byte]
@@ -448,12 +466,19 @@ class DebuggerInterpreter
 		self.is_step_by_step = false
 	end
 
+	redef fun start do
+		self.is_started = true
+		load_image
+		self.reg_file.reset
+		execute
+	end
+
 	# Returns :
 	# 0 : Execution sucessfully terminated
 	# 1 : Reached a breakpoint
-	# -1 : Execution error
+	# -1 : Execution error or not started
 	redef fun execute: Int do
-		init_memory
+		if not self.is_started then return -1
 
 		loop
 			if self.breakpoints.has(reg_file.pc.value) then
@@ -468,7 +493,12 @@ class DebuggerInterpreter
 
 			var exec_result = execute_instr
 
-			if exec_result != 1 then return exec_result
+			if exec_result == 0 then
+				self.is_started = false
+				return exec_result
+			else if exec_result != 1 then
+				return exec_result
+			end
 
 			if self.is_step_by_step then return 1
 		end
