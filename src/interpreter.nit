@@ -17,6 +17,7 @@ class Interpreter
 		self.model = model
 		self.reg_file = reg_file
 		self.instr_decoder = new Disassembler(model)
+		self.load_image
 	end
 
 	fun start do
@@ -101,7 +102,7 @@ class Interpreter
 	end
 
 	# Assemble code and place it at the start of virtual memory
-	fun load_image do
+	private fun load_image do
 		var program_mem = model.assemble
 		for b in program_mem.length.times do
 			memory[b] = program_mem[b]

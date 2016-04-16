@@ -5,8 +5,6 @@ class DebuggerController
 	var interpreter: DebuggerInterpreter
 	var disasm: Disassembler
 
-	init do interpreter.load_image
-
 	init with_model(model: Pep8Model) do
 		var reg_file = new Pep8RegisterFile
 		disasm = new Disassembler(model)
