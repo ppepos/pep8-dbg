@@ -49,9 +49,6 @@ class Interpreter
 		# If could not disassemble an instruction, stop
 		if instr == null then return -1
 
-		# Increment program counter
-		update_pc(instr)
-
 		if instr.op_str == "STOP" then
 			return 0
 		else if instr.op_str == "MOVSPA" then
@@ -97,6 +94,9 @@ class Interpreter
 		else
 			print "{instr} - not yet implemented"
 		end
+
+		# Increment program counter
+		update_pc(instr)
 
 		return 1
 	end
@@ -470,14 +470,19 @@ class InstructionDiff
 	# var saved_reg_file: Pep8RegisterFile
 	var affected_address: Int
 	var saved_bytes: Int
-	var saved_reg_file: Pep8RegisterFile is private writable(set_saved_reg)
+	private var saved_reg_file_: Pep8RegisterFile
 
+	# Tell us that it's DECI or CHARI
+	var is_input_trap: Bool
 
 	# fun saved_reg_file: Pep8RegisterFile do return self.saved_reg_file
 	fun saved_reg_file=(reg_file: Pep8RegisterFile) do
-	 	self.set_saved_reg(reg_file.copy)
+		saved_reg_file_ = reg_file.copy
 	end
 
+	fun saved_reg_file: Pep8RegisterFile do
+		return saved_reg_file_.copy
+	end
 end
 
 class DebuggerInterpreter
@@ -495,6 +500,10 @@ class DebuggerInterpreter
 	var is_started = false
 
 	var history = new Array[InstructionDiff]
+
+	var in_history_mode = false
+
+	var history_index: Int = -1
 
 	fun memory_chunk(addr, length: Int): Array[Byte] do
 		var result = new Array[Byte]
@@ -525,11 +534,17 @@ class DebuggerInterpreter
 	end
 
 	redef fun start do
-		self.is_started = true
-		self.is_trapped = false
-		self.is_step_by_step = false
+		is_started = true
+		is_trapped = false
+		is_step_by_step = false
+		in_history_mode = false
+
+		history.clear
+		history_index = -1
+
 		load_image
-		self.reg_file.reset
+		reg_file.reset
+
 		execute
 	end
 
@@ -551,7 +566,13 @@ class DebuggerInterpreter
 				end
 			end
 
-			var exec_result = execute_instr
+			var exec_result
+
+			if in_history_mode then
+				exec_result = history_mode_exec
+			else
+				exec_result = execute_instr
+			end
 
 			if exec_result == 0 then
 				self.is_started = false
@@ -564,13 +585,78 @@ class DebuggerInterpreter
 		end
 	end
 
-	fun save_diff(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
-		var bytes = read_word(addr)
-		var diff = new InstructionDiff(addr, bytes, reg_file.copy)
-		self.history.push(diff)
+	fun reverse_execute: Int do
+		if not in_history_mode then
+			history_index = history.length - 1
+			in_history_mode = true
+		end
+
+		loop
+			if self.breakpoints.has(reg_file.pc.value) then
+				# Allows to resume execution after a trap
+				if self.is_trapped then
+					self.is_trapped = false
+				else
+					self.is_trapped = true
+					return 1
+				end
+			end
+
+			restore_diff
+
+			if self.is_step_by_step then return 1
+		end
 	end
 
+	fun restore_diff do
+		if history_index < 0 then return
+
+		var diff = history[history_index]
+		reg_file = diff.saved_reg_file
+
+		history_index -= 1
+	end
+
+	# Don't forget to increment history_index when running DECI and CHARI
+	fun history_mode_exec: Int do
+		assert history_index >= -1 and history_index < history.length - 1
+
+		if history_index == history.length - 2 then in_history_mode = false
+
+		var diff = history[history_index + 1]
+
+		var exec_result
+
+		if not diff.is_input_trap then
+			# Normal instruction execution
+			exec_result = execute_instr
+		else
+			# Restore state for DECI and CHARI
+			apply_input_trap_diff(diff)
+			exec_result = 1
+		end
+
+		return exec_result
+	end
+
+	fun apply_input_trap_diff(diff: InstructionDiff) do
+		print "# Input trap diff not yet implemented"
+	end
+
+	fun save_diff(instr: Instruction) do
+		history_index += 1
+		if in_history_mode then return
+
+		var addr = resolve_opernd_value(instr)
+		var bytes = read_word(addr)
+		var is_input_trap = false
+
+		if instr.op_str == "DECI" or instr.op_str == "CHARI" then is_input_trap = true
+
+		var diff = new InstructionDiff(addr, bytes, reg_file.copy, is_input_trap)
+
+		self.history.push(diff)
+	end
 
 	redef fun exec_movspa(instr) do
 		save_diff(instr)

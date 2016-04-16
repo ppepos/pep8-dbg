@@ -18,9 +18,19 @@ class DebuggerController
 		interpreter.execute
 	end
 
+	fun reverse_cont do
+		interpreter.reverse_execute
+	end
+
 	fun nexti do
 		interpreter.activate_step_by_step
 		cont
+		interpreter.deactivate_step_by_step
+	end
+
+	fun reverse_nexti do
+		interpreter.activate_step_by_step
+		reverse_cont
 		interpreter.deactivate_step_by_step
 	end
 
@@ -86,11 +96,23 @@ class DebuggerCLI
 			else
 				ctrl.nexti
 			end
+		else if ["rev-ni", "rev-nexti"].has(cmd) then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				ctrl.reverse_nexti
+			end
 		else if ["c", "continue"].has(cmd) then
 			if tokens.length > 1 then
 				print "Usage : {cmd}"
 			else
 				ctrl.cont
+			end
+		else if ["rev-c", "rev-continue"].has(cmd) then
+			if tokens.length > 1 then
+				print "Usage : {cmd}"
+			else
+				ctrl.reverse_cont
 			end
 		else if ["so", "stepo", "stepover"].has(cmd) then
 			if tokens.length > 1 then
@@ -171,7 +193,9 @@ class DebuggerCLI
 		print "remove address        : Removes a breakpoint"
 		print "list                  : List all breakpoints"
 		print "nexti                 : Break to next instruction"
+		print "rev-nexti             : Break to previous instruction"
 		print "continue              : Resume execution"
+		print "rev-continue          : Resume reverse execution"
 		print "stepo                 : Step over function calls"
 		print "reg                   : Print the registers"
 		print "dump address length   : Dump memory"
