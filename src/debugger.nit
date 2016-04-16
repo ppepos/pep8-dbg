@@ -205,7 +205,7 @@ class DebuggerCLI
 			printn "PEPdb> "
 			input = stdin.read_line
 			parse_command input
-			if stdin.eof then exit(0)
+			#if stdin.eof then exit(0)
 		end
 	end
 end

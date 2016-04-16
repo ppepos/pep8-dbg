@@ -106,8 +106,6 @@ class Interpreter
 		for b in program_mem.length.times do
 			memory[b] = program_mem[b]
 		end
-
-		reg_file.sp.value = 2 ** 15 - 1 #32767
 	end
 
 	fun update_pc(last_instr: Instruction) do reg_file.pc.value += last_instr.len
@@ -452,14 +450,15 @@ class Pep8RegisterFile
 	end
 
 	fun reset do
-		 a = new Register
-		 x = new Register
-		 sp = new Register
-		 pc = new Register
-		 n = new RegisterBit
-		 z = new RegisterBit
-		 v = new RegisterBit
-		 c = new RegisterBit
+		a = new Register
+		x = new Register
+		sp = new Register
+		sp.value = 2 ** 15 - 1 #32767
+		pc = new Register
+		n = new RegisterBit
+		z = new RegisterBit
+		v = new RegisterBit
+		c = new RegisterBit
 	end
 
 	redef fun to_s do return "A: {a.value }\nX : {x.value }\nSP : {sp.value }\nPC : {pc.value }\nN : {n.value }\nZ : {z.value }\nV : {v.value }\nC : {c.value}"
@@ -526,6 +525,8 @@ class DebuggerInterpreter
 
 	redef fun start do
 		self.is_started = true
+		self.is_trapped = false
+		self.is_step_by_step = false
 		load_image
 		self.reg_file.reset
 		execute
@@ -563,7 +564,6 @@ class DebuggerInterpreter
 	end
 
 	fun save_diff(instr: Instruction) do
-		reg_file.a.value = reg_file.sp.value
 		var addr = resolve_opernd_value(instr)
 		var bytes = read_word(addr)
 		var diff = new InstructionDiff(addr, bytes, reg_file.copy)
