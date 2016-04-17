@@ -520,10 +520,6 @@ class MemInstructionDiff
 		super(interpreter)
 	end
 
-	redef fun apply(interpreter: DebuggerInterpreter) do
-		return interpreter.execute_instr
-	end
-
 end
 
 class InputReadingInstructionDiff
@@ -535,15 +531,6 @@ class InputReadingInstructionDiff
 		new_value = value_after
 		new_regs = new_reg_file
 		super(old_reg_file, addr, value_before, nb_bytes)
-	end
-
-	redef fun restore(interpreter: DebuggerInterpreter) do
-		if nb_bytes_written == 1 then
-			interpreter.write_byte(affected_address, new_value)
-		else
-			interpreter.write_word(affected_address, new_value)
-		end
-		super(interpreter)
 	end
 
 	redef fun apply(interpreter: DebuggerInterpreter): Int do
@@ -570,7 +557,7 @@ class DebuggerInterpreter
 	var breakpoints_ = new HashSet[Int]
 
 	# The interpreter reached a breakpoint
-	var is_trapped = false
+	var force_continue = false
 
 	# Allows step by step execution
 	var is_step_by_step = false
@@ -603,17 +590,9 @@ class DebuggerInterpreter
 
 	fun breakpoints: Array[Int] do return breakpoints_.to_a
 
-	fun activate_step_by_step do
-		self.is_step_by_step = true
-	end
-
-	fun deactivate_step_by_step do
-		self.is_step_by_step = false
-	end
-
 	redef fun start do
 		is_started = true
-		is_trapped = false
+		force_continue = false
 		is_step_by_step = false
 		in_history_mode = false
 
@@ -626,6 +605,48 @@ class DebuggerInterpreter
 		execute
 	end
 
+	fun cont do
+		force_continue = true
+		execute
+	end
+
+	fun reverse_cont do
+		force_continue = true
+		reverse_execute
+	end
+
+	fun nexti do
+		force_continue = true
+		is_step_by_step = true
+		execute
+		is_step_by_step = false
+	end
+
+	fun reverse_nexti do
+		force_continue = true
+		is_step_by_step = true
+		reverse_execute
+		is_step_by_step = false
+	end
+
+	fun stepo do
+		var len_call = 3
+		var pc = reg_file.pc.value + len_call
+		var keep_bp = false
+
+		if breakpoints.has(pc) then
+			keep_bp = true
+		else
+			set_breakpoint pc
+		end
+
+		force_continue = true
+		execute
+
+		# If the breakpoint was previously in the list don't remove it
+		if not keep_bp then remove_breakpoint pc
+	end
+
 	# Returns :
 	# 0 : Execution sucessfully terminated
 	# 1 : Reached a breakpoint
@@ -634,22 +655,15 @@ class DebuggerInterpreter
 		if not self.is_started then return -1
 
 		loop
-			if self.breakpoints.has(reg_file.pc.value) then
-				# Allows to resume execution after a trap
-				if self.is_trapped then
-					self.is_trapped = false
-				else
-					self.is_trapped = true
-					return 1
-				end
-			end
+			if self.breakpoints.has(reg_file.pc.value) and not force_continue then return 1
+			force_continue = false
 
 			var exec_result
 
-			if in_history_mode then
-				exec_result = history_mode_exec
-			else
+			if history_index == history.length - 1 then
 				exec_result = execute_instr
+			else
+				exec_result = history_mode_exec
 			end
 
 			if exec_result == 0 then
@@ -659,40 +673,23 @@ class DebuggerInterpreter
 				return exec_result
 			end
 
-			if is_step_by_step then
-				is_trapped = true
-				return 1
-			end
+			if is_step_by_step then return 1
 		end
 	end
 
 	fun reverse_execute do
 		if not self.is_started then return
 
-		if not in_history_mode then
-			history_index = history.length - 1
-			in_history_mode = true
-		end
-
 		loop
 			if reg_file.pc.value == 0 then break
-			if breakpoints.has(reg_file.pc.value) then
-				# Allows to resume execution after a trap
-				if is_trapped then
-					is_trapped = false
-				else
-					is_trapped = true
-					break
-				end
-			end
+
+			if breakpoints.has(reg_file.pc.value) and not force_continue then break
+
+			force_continue = false
 
 			restore_diff
 
-			if is_step_by_step then
-				is_trapped = true
-				break
-			end
-
+			if is_step_by_step then break
 		end
 	end
 
@@ -701,15 +698,20 @@ class DebuggerInterpreter
 
 		var diff = history[history_index]
 		diff.restore(self)
+	end
 
+	fun debug_print_history do
+		print "====== HISTORY ======"
+		for d in history do
+			print d.saved_reg_file
+			print " ============= "
+		end
+		print "====== END HISTORY ======"
 	end
 
 	fun history_mode_exec: Int do
-		assert history_index >= -1 and history_index < history.length - 1
-
-		if history_index == history.length - 2 then in_history_mode = false
-
-		var diff = history[history_index + 1]
+		assert history_index >= -1 and history_index <= history.length - 1
+		var diff = history[history_index]
 
 		return diff.apply(self)
 	end
@@ -726,7 +728,9 @@ class DebuggerInterpreter
 
 	fun save_diff(diff: InstructionDiff) do
 		history_index += 1
-		if not in_history_mode then self.history.push(diff)
+		if history_index != history.length then return
+
+		history.push(diff)
 	end
 
 	redef fun exec_movspa(instr) do

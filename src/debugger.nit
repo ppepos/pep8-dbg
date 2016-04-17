@@ -14,43 +14,11 @@ class DebuggerController
 		init(interpreter, disasm)
 	end
 
-	fun cont do
-		interpreter.execute
-	end
-
-	fun reverse_cont do
-		interpreter.reverse_execute
-	end
-
-	fun nexti do
-		interpreter.activate_step_by_step
-		cont
-		interpreter.deactivate_step_by_step
-	end
-
-	fun reverse_nexti do
-		interpreter.activate_step_by_step
-		reverse_cont
-		interpreter.deactivate_step_by_step
-	end
-
-	fun stepo do
-		var len_call = 3
-		var pc = interpreter.reg_file.pc.value + len_call
-		var keep_bp = false
-
-		if interpreter.breakpoints.has(pc) then
-			keep_bp = true
-		else
-			interpreter.set_breakpoint pc
-		end
-
-		interpreter.execute
-
-		# If the breakpoint was previously in the list don't remove it
-		if not keep_bp then interpreter.remove_breakpoint pc
-	end
-
+	fun cont do interpreter.cont
+	fun reverse_cont do interpreter.reverse_cont
+	fun nexti do interpreter.nexti
+	fun reverse_nexti do interpreter.reverse_nexti
+	fun stepo do interpreter.stepo
 	fun set_breakpoint(addr: Int) do interpreter.set_breakpoint addr
 	fun remove_breakpoint(addr: Int) do interpreter.remove_breakpoint addr
 	fun breakpoints: Array[Int] do return interpreter.breakpoints
