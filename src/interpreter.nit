@@ -13,6 +13,8 @@ class Interpreter
 
 	var instr_decoder: Disassembler
 
+	var last_pc: Int = 0
+
 	init(model: Pep8Model, reg_file: Pep8RegisterFile) do
 		self.model = model
 		self.reg_file = reg_file
@@ -48,6 +50,10 @@ class Interpreter
 
 		# If could not disassemble an instruction, stop
 		if instr == null then return -1
+
+		last_pc = reg_file.pc.value
+		# Increment program counter
+		update_pc(instr)
 
 		if instr.op_str == "STOP" then
 			return 0
@@ -94,9 +100,6 @@ class Interpreter
 		else
 			print "{instr} - not yet implemented"
 		end
-
-		# Increment program counter
-		update_pc(instr)
 
 		return 1
 	end
@@ -486,7 +489,7 @@ class InstructionDiff
 
 	fun saved_reg_file: Pep8RegisterFile do
 		return saved_reg_file_.copy
-	end end
+	end
 
 	fun restore(interpreter: DebuggerInterpreter) do
 		interpreter.history_index -= 1
@@ -496,6 +499,9 @@ class InstructionDiff
 	fun apply(interpreter: DebuggerInterpreter): Int do
 		return interpreter.execute_instr
 	end
+
+	fun modify_pc(new_pc: Int) do saved_reg_file_.pc.value = new_pc
+
 end
 
 class MemInstructionDiff
@@ -711,7 +717,7 @@ class DebuggerInterpreter
 
 	fun history_mode_exec: Int do
 		assert history_index >= -1 and history_index <= history.length - 1
-		var diff = history[history_index]
+		var diff = history[history_index+1]
 
 		return diff.apply(self)
 	end
@@ -730,10 +736,12 @@ class DebuggerInterpreter
 		history_index += 1
 		if history_index != history.length then return
 
+		diff.modify_pc last_pc
 		history.push(diff)
 	end
 
 	redef fun exec_movspa(instr) do
+
 		save_diff(new InstructionDiff(reg_file))
 		super
 	end
