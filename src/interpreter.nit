@@ -200,6 +200,10 @@ class Interpreter
 
 	fun reg_sub(x, y: Int): Int do return reg_add(x & 0xffff, ((~y) + 1) & 0xffff)
 
+	fun write_byte(addr, value: Int) do
+		memory[addr] = (value & 0xff).to_b
+	end
+
 	fun write_word(addr, value: Int) do
 		memory[addr + 1] = (value & 0xff).to_b
 		memory[addr] = ((value >> 8) & 0xff).to_b
@@ -277,7 +281,7 @@ class Interpreter
 		if char == null then char = 0.to_b
 		var chari = char.to_i
 
-		memory[addr] = (chari & 0xff).to_b
+		write_byte(addr, chari)
 	end
 
 	fun exec_charo(instr: Instruction) do
@@ -466,14 +470,14 @@ class Pep8RegisterFile
 
 end
 
+
 class InstructionDiff
 	# var saved_reg_file: Pep8RegisterFile
-	var affected_address: Int
-	var saved_bytes: Int
 	private var saved_reg_file_: Pep8RegisterFile
 
-	# Tell us that it's DECI or CHARI
-	var is_input_trap: Bool
+	init(reg_file: Pep8RegisterFile) do
+		saved_reg_file = reg_file
+	end
 
 	# fun saved_reg_file: Pep8RegisterFile do return self.saved_reg_file
 	fun saved_reg_file=(reg_file: Pep8RegisterFile) do
@@ -482,6 +486,80 @@ class InstructionDiff
 
 	fun saved_reg_file: Pep8RegisterFile do
 		return saved_reg_file_.copy
+	end end
+
+	fun restore(interpreter: DebuggerInterpreter) do
+		interpreter.history_index -= 1
+		interpreter.reg_file = saved_reg_file
+	end
+
+	fun apply(interpreter: DebuggerInterpreter): Int do
+		return interpreter.execute_instr
+	end
+end
+
+class MemInstructionDiff
+	super InstructionDiff
+	var affected_address: Int
+	var saved_bytes: Int
+	var nb_bytes_written: Int
+
+	init(reg_file: Pep8RegisterFile, addr, value, nb_bytes: Int) do
+		affected_address = addr
+		saved_bytes = value
+		nb_bytes_written = nb_bytes
+		super(reg_file)
+	end
+
+	redef fun restore(interpreter: DebuggerInterpreter) do
+		if nb_bytes_written == 1 then
+			interpreter.write_byte(affected_address, saved_bytes)
+		else
+			interpreter.write_word(affected_address, saved_bytes)
+		end
+		super(interpreter)
+	end
+
+	redef fun apply(interpreter: DebuggerInterpreter) do
+		return interpreter.execute_instr
+	end
+
+end
+
+class InputReadingInstructionDiff
+	super MemInstructionDiff
+	var new_value: Int
+	var new_regs: Pep8RegisterFile
+
+	init (old_reg_file, new_reg_file: Pep8RegisterFile, addr, value_before, value_after, nb_bytes: Int) do
+		new_value = value_after
+		new_regs = new_reg_file
+		super(old_reg_file, addr, value_before, nb_bytes)
+	end
+
+	redef fun restore(interpreter: DebuggerInterpreter) do
+		if nb_bytes_written == 1 then
+			interpreter.write_byte(affected_address, new_value)
+		else
+			interpreter.write_word(affected_address, new_value)
+		end
+		super(interpreter)
+	end
+
+	redef fun apply(interpreter: DebuggerInterpreter): Int do
+		interpreter.history_index += 1
+		apply_input_trap_diff(interpreter)
+		return 1
+	end
+
+	fun apply_input_trap_diff(interpreter: DebuggerInterpreter) do
+		interpreter.reg_file = new_regs
+
+		if nb_bytes_written == 1 then
+			interpreter.write_byte(affected_address, new_value)
+		else
+			interpreter.write_word(affected_address, new_value)
+		end
 	end
 end
 
@@ -612,12 +690,10 @@ class DebuggerInterpreter
 		if history_index < 0 then return
 
 		var diff = history[history_index]
-		reg_file = diff.saved_reg_file
+		diff.restore(self)
 
-		history_index -= 1
 	end
 
-	# Don't forget to increment history_index when running DECI and CHARI
 	fun history_mode_exec: Int do
 		assert history_index >= -1 and history_index < history.length - 1
 
@@ -625,131 +701,133 @@ class DebuggerInterpreter
 
 		var diff = history[history_index + 1]
 
-		var exec_result
-
-		if not diff.is_input_trap then
-			# Normal instruction execution
-			exec_result = execute_instr
-		else
-			# Restore state for DECI and CHARI
-			apply_input_trap_diff(diff)
-			exec_result = 1
-		end
-
-		return exec_result
+		return diff.apply(self)
 	end
 
-	fun apply_input_trap_diff(diff: InstructionDiff) do
-		print "# Input trap diff not yet implemented"
+	fun diff_with_modif(instr: Instruction, nb_bytes_written: Int): InstructionDiff do
+		var addr = resolve_addr(instr)
+		return new MemInstructionDiff(reg_file, addr, read_word(addr), nb_bytes_written)
 	end
 
-	fun save_diff(instr: Instruction) do
+	fun diff_with_input_reading(instr: Instruction, value_after, nb_bytes_written: Int, old_reg_file: Pep8RegisterFile): InstructionDiff do
+		var addr = resolve_addr(instr)
+		return new InputReadingInstructionDiff(old_reg_file, reg_file, addr, read_word(addr), value_after, nb_bytes_written)
+	end
+
+	fun save_diff(diff: InstructionDiff) do
 		history_index += 1
-		if in_history_mode then return
-
-		var addr = resolve_opernd_value(instr)
-		var bytes = read_word(addr)
-		var is_input_trap = false
-
-		if instr.op_str == "DECI" or instr.op_str == "CHARI" then is_input_trap = true
-
-		var diff = new InstructionDiff(addr, bytes, reg_file.copy, is_input_trap)
-
-		self.history.push(diff)
+		if not in_history_mode then self.history.push(diff)
 	end
 
 	redef fun exec_movspa(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_br(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_breq(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_brne(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_brge(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_call(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_deci(instr) do
-		save_diff(instr)
+		var old_reg_file = reg_file
+
 		super
+
+		var addr = resolve_addr(instr)
+		var new_value = read_word(addr)
+		var nb_bytes_written = 2
+		var diff = diff_with_input_reading(instr, new_value, nb_bytes_written, old_reg_file)
+
+		save_diff(diff)
 	end
 
 	redef fun exec_chari(instr) do
-		save_diff(instr)
+		var old_reg_file = reg_file
 		super
+
+		var addr = resolve_addr(instr)
+		var new_value = read_word(addr)
+		var nb_bytes_written = 1
+		var diff = diff_with_input_reading(instr, new_value, nb_bytes_written, old_reg_file)
+
+		save_diff(diff)
 	end
 
 	redef fun exec_charo(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_retn(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_subsp(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_add(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_sub(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_and(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_cp(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_ld(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_st(instr) do
-		save_diff(instr)
+		var nb_bytes_written = 2
+		var diff = diff_with_modif(instr, nb_bytes_written)
+		save_diff(diff)
 		super
 	end
 
 	redef fun exec_deco(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
 	redef fun exec_stro(instr) do
-		save_diff(instr)
+		save_diff(new InstructionDiff(reg_file))
 		super
 	end
 
