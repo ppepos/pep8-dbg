@@ -659,30 +659,40 @@ class DebuggerInterpreter
 				return exec_result
 			end
 
-			if self.is_step_by_step then return 1
+			if is_step_by_step then
+				is_trapped = true
+				return 1
+			end
 		end
 	end
 
-	fun reverse_execute: Int do
+	fun reverse_execute do
+		if not self.is_started then return
+
 		if not in_history_mode then
 			history_index = history.length - 1
 			in_history_mode = true
 		end
 
 		loop
-			if self.breakpoints.has(reg_file.pc.value) then
+			if reg_file.pc.value == 0 then break
+			if breakpoints.has(reg_file.pc.value) then
 				# Allows to resume execution after a trap
-				if self.is_trapped then
-					self.is_trapped = false
+				if is_trapped then
+					is_trapped = false
 				else
-					self.is_trapped = true
-					return 1
+					is_trapped = true
+					break
 				end
 			end
 
 			restore_diff
 
-			if self.is_step_by_step then return 1
+			if is_step_by_step then
+				is_trapped = true
+				break
+			end
+
 		end
 	end
 
