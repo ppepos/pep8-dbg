@@ -67,6 +67,16 @@ class Interpreter
 			exec_brne(instr)
 		else if instr.op_str == "BRGE" then
 			exec_brge(instr)
+		else if instr.op_str == "BRLE" then
+			exec_brle(instr)
+		else if instr.op_str == "BRLT" then
+			exec_brlt(instr)
+		else if instr.op_str == "BRGT" then
+			exec_brgt(instr)
+		else if instr.op_str == "BRV" then
+			exec_brv(instr)
+		else if instr.op_str == "BRC" then
+			exec_brc(instr)
 		else if instr.op_str == "CALL" then
 			exec_call(instr)
 		else if instr.op_str == "DECI" then
@@ -93,8 +103,32 @@ class Interpreter
 			exec_cp(instr)
 		else if instr.op_str == "LD" then
 			exec_ld(instr)
+		else if instr.op_str == "LDBYTE" then
+			exec_ldbyte(instr)
 		else if instr.op_str == "ST" then
 			exec_st(instr)
+		else if instr.op_str == "STBYTE" then
+			exec_stbyte(instr)
+		else if instr.op_str == "NOP" then
+			exec_nop(instr)
+		else if instr.op_str == "MOVFLGA" then
+			exec_movflga(instr)
+		else if instr.op_str == "NOT" then
+			exec_not(instr)
+		else if instr.op_str == "NEG" then
+			exec_neg(instr)
+		else if instr.op_str == "ASL" then
+			exec_asl(instr)
+		else if instr.op_str == "ASR" then
+			exec_asr(instr)
+		else if instr.op_str == "ROL" then
+			exec_rol(instr)
+		else if instr.op_str == "ROR" then
+			exec_ror(instr)
+		else if instr.op_str == "ADDSP" then
+			exec_addsp(instr)
+		else if instr.op_str == "OR" then
+			exec_or(instr)
 
 		# Tough luck
 		else
@@ -135,6 +169,10 @@ class Interpreter
 		value += word[1].to_i
 
 		return value
+	end
+
+	fun read_byte(addr: Int): Int do
+		return memory[addr].to_i
 	end
 
 	fun resolve_addr(instr: Instruction): Int do
@@ -219,6 +257,31 @@ class Interpreter
 	fun exec_br(instr: Instruction) do
 		var addr = resolve_opernd_value(instr)
 		reg_file.pc.value = addr
+	end
+
+	fun exec_brle(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+		if reg_file.n.value == 1 or reg_file.z.value == 1 then reg_file.pc.value = addr
+	end
+
+	fun exec_brlt(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+		if reg_file.n.value == 1 then reg_file.pc.value = addr
+	end
+
+	fun exec_brgt(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+		if reg_file.n.value == 0 and reg_file.z.value == 0 then reg_file.pc.value = addr
+	end
+
+	fun exec_brv(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+		if reg_file.v.value == 1 then reg_file.pc.value = addr
+	end
+
+	fun exec_brc(instr: Instruction) do
+		var addr = resolve_opernd_value(instr)
+		if reg_file.c.value == 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_breq(instr: Instruction) do
@@ -307,6 +370,11 @@ class Interpreter
 		reg_file.sp.value = reg_sub(reg_file.sp.value, op_val)
 	end
 
+	fun exec_addsp(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		reg_file.sp.value = reg_add(reg_file.sp.value, op_val)
+	end
+
 	fun exec_add(instr: Instruction) do
 		var op_val = resolve_opernd_value(instr)
 		var reg: Register
@@ -351,6 +419,22 @@ class Interpreter
 		reg_file.z.value = if result == 0 then 1 else 0
 	end
 
+	fun exec_or(instr: Instruction) do
+		var op_val = resolve_opernd_value(instr)
+		var reg: Register
+
+		if instr.suffix == "A" then
+			reg = reg_file.a
+		else
+			reg = reg_file.x
+		end
+
+		op_val = op_val & 0xFFFF
+		var result = op_val | reg.value
+		reg_file.n.value = if result > 32768 then 1 else 0
+		reg_file.z.value = if result == 0 then 1 else 0
+	end
+
 	fun exec_cp(instr: Instruction) do
 
 		var cmp_value: Int
@@ -380,6 +464,20 @@ class Interpreter
 		reg_file.update_state_regs(value)
 	end
 
+	fun exec_ldbyte(instr: Instruction) do
+
+		var addr = resolve_addr(instr)
+		var value = read_byte(addr)
+
+		if instr.suffix == "A" then
+			reg_file.a.value = value
+		else if instr.suffix == "X" then
+			reg_file.x.value = value
+		end
+
+		reg_file.update_state_regs(value)
+	end
+
 	fun exec_st(instr: Instruction) do
 		# Store suffix in operand value address
 		var addr = resolve_addr(instr)
@@ -388,6 +486,16 @@ class Interpreter
 		if instr.suffix == "A" then reg = reg_file.a else reg = reg_file.x
 
 		write_word(addr, reg.value)
+	end
+
+	fun exec_stbyte(instr: Instruction) do
+		# Store suffix in operand value address
+		var addr = resolve_addr(instr)
+
+		var reg: Register
+		if instr.suffix == "A" then reg = reg_file.a else reg = reg_file.x
+
+		write_byte(addr, reg.value)
 	end
 
 	fun exec_deco(instr: Instruction) do
@@ -402,6 +510,142 @@ class Interpreter
 			ptr += 1
 		end
 	end
+
+	fun exec_movflga(instr: Instruction) do
+        var value = reg_file.c.value
+		value += reg_file.v.value << 1
+		value += reg_file.z.value << 2
+		value += reg_file.n.value << 3
+
+		reg_file.a.value = value
+	end
+
+	fun exec_not(instr: Instruction) do
+        var value
+
+		if instr.suffix == "A" then
+			value = ~reg_file.a.value & 0xffff
+			reg_file.a.value = value
+		else
+			value = ~reg_file.x.value & 0xffff
+			reg_file.x.value = value
+		end
+
+		reg_file.update_state_regs(value)
+	end
+
+	fun exec_neg(instr: Instruction) do
+        var value
+
+		if instr.suffix == "A" then
+			value = (~reg_file.a.value + 1) & 0xffff
+			reg_file.a.value = value
+		else
+			value = (~reg_file.x.value + 1) & 0xffff
+			reg_file.x.value = value
+		end
+
+		# overflow flag
+		reg_file.v.value = if value == 32768 then 1 else 0
+
+		reg_file.update_state_regs(value)
+	end
+
+	# Following Warford implementation, this is a signed multiplication, not a real bit shift
+	fun exec_asl(instr: Instruction) do
+        var value
+		var old_val
+
+		if instr.suffix == "A" then
+			old_val= reg_file.a.value
+			value = reg_file.a.value * 2
+			reg_file.a.value = value & 0xffff
+		else
+			old_val= reg_file.x.value
+			value = reg_file.x.value * 2
+			reg_file.x.value = value & 0xffff
+		end
+
+		reg_file.c.value = 0
+		if value >= 65536 then reg_file.c.value = 1
+
+		reg_file.v.value = 0
+		# Check overflow for both signed and unsigned value
+		if (old_val >= 0x4000 and old_val < 0x8000) or (old_val >= 0x8000 and old_val < 0xC000) then
+			reg_file.v.value = 1
+		end
+
+		reg_file.update_state_regs(value)
+	end
+
+	# Following Warford implementation, this is a signed multiplication, not a real bit shift
+	fun exec_asr(instr: Instruction) do
+        var value
+		var old_val
+
+		if instr.suffix == "A" then
+			old_val= reg_file.a.value
+
+			if old_val < 32768 then
+				value = old_val / 2
+			else
+				value = old_val / 2 + 32768
+			end
+
+			reg_file.a.value = value
+		else
+			old_val= reg_file.x.value
+
+			if old_val < 32768 then
+				value = old_val / 2
+			else
+				value = old_val / 2 + 32768
+			end
+
+			reg_file.x.value = value
+		end
+
+		if (old_val % 2) == 1 then
+			reg_file.c.value = 1
+		else
+			reg_file.c.value = 0
+		end
+
+		reg_file.update_state_regs(value)
+	end
+
+	fun exec_rol(instr: Instruction) do
+		var carry
+		if instr.suffix == "A" then
+			carry = if reg_file.a.value >= 32768 then 1 else 0
+			reg_file.a.value = (reg_file.a.value * 2) & 0xffff
+			reg_file.a.value |= carry
+		else
+			carry = if reg_file.x.value >= 32768 then 1 else 0
+			reg_file.x.value = (reg_file.x.value * 2) & 0xffff
+			reg_file.x.value |= carry
+		end
+
+		reg_file.c.value = carry
+	end
+
+	fun exec_ror(instr: Instruction) do
+		var carry
+		if instr.suffix == "A" then
+			carry = reg_file.a.value % 2 == 1
+			reg_file.a.value = (reg_file.a.value / 2)
+			reg_file.a.value |= if carry then 0x8000 else 0
+		else
+			carry = reg_file.x.value % 2 == 1
+			reg_file.x.value = (reg_file.x.value / 2)
+			reg_file.x.value |= if carry then 0x8000 else 0
+		end
+
+		reg_file.c.value = if carry then 1 else 0
+	end
+
+	fun exec_nop(instr: Instruction) do end
+
 end
 
 class Pep8RegisterFile
