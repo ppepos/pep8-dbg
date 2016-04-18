@@ -1201,7 +1201,13 @@ class RegisterBit
 	var value = 0
 end
 
-var model = new Pep8Model("tests/test03.pep")
+if args.length != 1 then
+	print "Usage: {program_name} <source_file.pep>"
+	exit(1)
+end
+
+var source_file = args[0]
+var model = new Pep8Model(source_file)
 # var model = new Pep8Model("src/01-exemple.pep")
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
