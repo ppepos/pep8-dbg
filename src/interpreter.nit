@@ -978,9 +978,15 @@ class DebuggerInterpreter
 		return new MemInstructionDiff(reg_file, addr, read_word(addr), nb_bytes_written)
 	end
 
-	fun diff_with_input_reading(instr: Instruction, value_after, nb_bytes_written: Int, old_reg_file: Pep8RegisterFile): InstructionDiff do
-		var addr = resolve_addr(instr)
-		return new InputReadingInstructionDiff(old_reg_file, reg_file, addr, read_word(addr), value_after, nb_bytes_written)
+	fun diff_with_input_reading(instr: Instruction, addr, value_before, nb_bytes_written: Int, old_reg_file: Pep8RegisterFile): InstructionDiff do
+		var new_value
+		if nb_bytes_written == 2 then
+			new_value = read_word(addr)
+		else
+			new_value = read_byte(addr)
+		end
+
+		return new InputReadingInstructionDiff(old_reg_file, reg_file, addr, value_before, new_value, nb_bytes_written)
 	end
 
 	fun save_diff(diff: InstructionDiff) do
@@ -1049,26 +1055,25 @@ class DebuggerInterpreter
 
 	redef fun exec_deci(instr) do
 		var old_reg_file = reg_file
+		var addr = resolve_addr(instr)
+		var old_value = read_word(addr)
+		var nb_bytes_written = 2
 
 		super
 
-		var addr = resolve_addr(instr)
-		var new_value = read_word(addr)
-		var nb_bytes_written = 2
-		var diff = diff_with_input_reading(instr, new_value, nb_bytes_written, old_reg_file)
-
+		var diff = diff_with_input_reading(instr, addr, old_value, nb_bytes_written, old_reg_file)
 		save_diff(diff)
 	end
 
 	redef fun exec_chari(instr) do
 		var old_reg_file = reg_file
+		var addr = resolve_addr(instr)
+		var old_value = read_byte(addr)
+		var nb_bytes_written = 1
+
 		super
 
-		var addr = resolve_addr(instr)
-		var new_value = read_word(addr)
-		var nb_bytes_written = 1
-		var diff = diff_with_input_reading(instr, new_value, nb_bytes_written, old_reg_file)
-
+		var diff = diff_with_input_reading(instr, addr, old_value, nb_bytes_written, old_reg_file)
 		save_diff(diff)
 	end
 
