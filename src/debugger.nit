@@ -193,6 +193,7 @@ class DebuggerCLI
 	fun command_loop do
 		var input
 		var with_history = true
+		var last_command = ""
 
 		loop
 			input = rl.readline("PEPdb> ", with_history)
@@ -200,7 +201,13 @@ class DebuggerCLI
 			# EOF
 			if input == null then return
 
-			parse_command input
+			# Sending an empty line replays the last command
+			if input == "" then
+				parse_command last_command
+			else
+				parse_command input
+				last_command = input
+			end
 		end
 	end
 end
