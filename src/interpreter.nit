@@ -89,8 +89,8 @@ class Interpreter
 			exec_chari(instr)
 		else if instr.op_str == "CHARO" then
 			exec_charo(instr)
-		else if instr.op_str.substring(0, 3) == "RET" then
-			exec_retn(instr)
+		else if instr.op_str == "RET" then
+			exec_ret(instr)
 		else if instr.op_str == "SUBSP" then
 			exec_subsp(instr)
 		else if instr.op_str == "ADD" then
@@ -198,7 +198,7 @@ class Interpreter
 		else if instr.addr_mode == "sx" then
 			addr = (reg_file.sp.value + value + reg_file.x.value) & 0xffff
 		else if instr.addr_mode == "sxf" then
-			addr = read_word((reg_file.sp.value + value + reg_file.x.value) & 0xffff)
+			addr = (read_word((reg_file.sp.value + value) & 0xffff) + reg_file.x.value) & 0xffff
 		else
 			print "addressing mode not recognized"
 		end
@@ -355,8 +355,8 @@ class Interpreter
 		printn op_val.code_point
 	end
 
-	fun exec_retn(instr: Instruction) do
-		var n = instr.op_str[instr.op_str.length - 1].to_i
+	fun exec_ret(instr: Instruction) do
+		var n = instr.suffix.to_i
 		var sp = reg_file.sp
 		var pc = reg_file.pc
 
@@ -698,7 +698,7 @@ class Pep8RegisterFile
 		z.value = if value == 0 then 1 else 0
 
 		# negative flag
-		n.value = if value >= 32767 then 1 else 0
+		n.value = if value >= 32768 then 1 else 0
 	end
 
 	fun reset do
@@ -1070,7 +1070,7 @@ class DebuggerInterpreter
 		super
 	end
 
-	redef fun exec_retn(instr) do
+	redef fun exec_ret(instr) do
 		save_diff(new InstructionDiff(reg_file))
 		super
 	end
@@ -1202,4 +1202,4 @@ model.read_instructions
 var reg_file = new Pep8RegisterFile
 var interpreter = new Interpreter(model, reg_file)
 
-interpreter.execute
+interpreter.start
