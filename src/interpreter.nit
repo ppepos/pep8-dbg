@@ -1010,6 +1010,31 @@ class DebuggerInterpreter
 		super
 	end
 
+	redef fun exec_brle(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_brlt(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_brgt(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_brv(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_brc(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
 	redef fun exec_call(instr) do
 		save_diff(new InstructionDiff(reg_file))
 		super
@@ -1080,8 +1105,20 @@ class DebuggerInterpreter
 		super
 	end
 
+	redef fun exec_ldbyte(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
 	redef fun exec_st(instr) do
 		var nb_bytes_written = 2
+		var diff = diff_with_modif(instr, nb_bytes_written)
+		save_diff(diff)
+		super
+	end
+
+	redef fun exec_stbyte(instr) do
+		var nb_bytes_written = 1
 		var diff = diff_with_modif(instr, nb_bytes_written)
 		save_diff(diff)
 		super
@@ -1093,6 +1130,56 @@ class DebuggerInterpreter
 	end
 
 	redef fun exec_stro(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_nop(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_movflga(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_not(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_neg(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_asl(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_asr(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_rol(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_ror(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_addsp(instr) do
+		save_diff(new InstructionDiff(reg_file))
+		super
+	end
+
+	redef fun exec_or(instr) do
 		save_diff(new InstructionDiff(reg_file))
 		super
 	end
