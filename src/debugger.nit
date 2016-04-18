@@ -1,5 +1,6 @@
 import interpreter
 import disasm
+import readline
 
 class DebuggerController
 	var interpreter: DebuggerInterpreter
@@ -33,6 +34,7 @@ end
 
 class DebuggerCLI
 	var ctrl: DebuggerController
+	var rl = new Readline.with_mode(0)
 
 	init with_model(model: Pep8Model) do
 		var ctrl = new DebuggerController.with_model(model)
@@ -189,13 +191,16 @@ class DebuggerCLI
 	end
 
 	fun command_loop do
-		var input = ""
+		var input
+		var with_history = true
 
 		loop
-			printn "PEPdb> "
-			input = stdin.read_line
+			input = rl.readline("PEPdb> ", with_history)
+
+			# EOF
+			if input == null then return
+
 			parse_command input
-			#if stdin.eof then exit(0)
 		end
 	end
 end
