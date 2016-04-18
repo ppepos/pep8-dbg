@@ -77,7 +77,7 @@ class Pep8Model
 		var address = 0
 
 		for src_line in file.read_lines do
-			var match = src_line.search(comment_re)
+			var match = src_line.trim.search(comment_re)
 			if match != null then
 				var instr_match = match[0]
 				if instr_match != null then
@@ -162,10 +162,8 @@ class Pep8Model
 	fun get_matching_intruction_def(mnemonic, suffix: String): nullable InstructionDef
 	do
 		for inst_def in self.instruction_set do
-			if not suffix.is_empty and suffix.is_num and not inst_def.has_suffix then
-				continue
-			end
-			if inst_def.mnemonic == mnemonic then return inst_def
+			if suffix.is_empty and inst_def.has_suffix then continue
+			if inst_def.mnemonic.to_upper == mnemonic.to_upper then return inst_def
 		end
 		return null
 	end
@@ -378,9 +376,27 @@ class PseudoInstruction
 		else if self.op_str == ".BLOCK" then
 			return new Array[Byte].filled_with(0.to_b, self.value.to_i)
 		else if self.op_str == ".BYTE" then
-			return [self.value.to_i.to_b]
+			var value = new Array[Byte]
+			# TODO: Remove value.has when is_int function will be fixed
+			if self.value.is_int and not self.value.has("'") then
+				value.add self.value.to_i.to_b
+			else
+				var str = self.value.str_to_bytes
+				if str.length == 1 then value.add str[0]
+			end
+			return value
 		else if self.op_str == ".WORD" then
-			return self.value.to_i.to_two_bytes
+			var value = new Array[Byte]
+			# TODO: Remove value.has when is_int function will be fixed
+			if self.value.is_int and not self.value.has("'") then
+				value = self.value.to_i.to_two_bytes
+			else
+				var str = self.value.str_to_bytes
+				if str.length == 2 then
+					value = str
+				end
+			end
+			return value
 		else
 			return new Array[Byte]
 		end

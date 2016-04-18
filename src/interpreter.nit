@@ -206,15 +206,23 @@ class Interpreter
 		return addr
 	end
 
-	fun resolve_opernd_value(instr: Instruction): Int do
+	fun resolve_opernd_value(instr: Instruction, nb_bytes: Int): Int do
 		var value: Int
 		var addr: Int
 
 		if instr.addr_mode == "i" then
-			value = get_imm_value(instr)
+			if nb_bytes == 2 then
+				value = get_imm_value(instr)
+			else
+				value = get_imm_value(instr) & 0xff
+			end
 		else
 			addr = resolve_addr(instr)
-			value = read_word(addr)
+			if nb_bytes == 2 then
+				value = read_word(addr)
+			else
+				value = read_byte(addr)
+			end
 		end
 
 		return value
@@ -255,58 +263,58 @@ class Interpreter
 	end
 
 	fun exec_br(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 		reg_file.pc.value = addr
 	end
 
 	fun exec_brle(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 		if reg_file.n.value == 1 or reg_file.z.value == 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_brlt(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 		if reg_file.n.value == 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_brgt(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 		if reg_file.n.value == 0 and reg_file.z.value == 0 then reg_file.pc.value = addr
 	end
 
 	fun exec_brv(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 		if reg_file.v.value == 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_brc(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 		if reg_file.c.value == 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_breq(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 
 		# If Zero flag, set PC to addr
 		if reg_file.z.value == 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_brne(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 
 		# In not zero, set PC to addr
 		if reg_file.z.value != 1 then reg_file.pc.value = addr
 	end
 
 	fun exec_brge(instr: Instruction) do
-		var addr = resolve_opernd_value(instr)
+		var addr = resolve_opernd_value(instr, 2)
 
 		# If Neg flag unset, set PC to addr
 		if reg_file.n.value == 0 then reg_file.pc.value = addr
 	end
 
 	fun exec_call(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 
 		reg_file.sp.value -= 2
 		write_word(reg_file.sp.value, reg_file.pc.value)
@@ -351,8 +359,9 @@ class Interpreter
 	end
 
 	fun exec_charo(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
-		printn op_val.code_point
+		var value = resolve_opernd_value(instr, 1)
+
+		printn value.to_b.ascii
 	end
 
 	fun exec_ret(instr: Instruction) do
@@ -366,17 +375,17 @@ class Interpreter
 	end
 
 	fun exec_subsp(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 		reg_file.sp.value = reg_sub(reg_file.sp.value, op_val)
 	end
 
 	fun exec_addsp(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 		reg_file.sp.value = reg_add(reg_file.sp.value, op_val)
 	end
 
 	fun exec_add(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 		var reg: Register
 
 		if instr.suffix == "A" then
@@ -390,7 +399,7 @@ class Interpreter
 	end
 
 	fun exec_sub(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 		var reg: Register
 
 		if instr.suffix == "A" then
@@ -404,7 +413,7 @@ class Interpreter
 	end
 
 	fun exec_and(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 		var reg: Register
 
 		if instr.suffix == "A" then
@@ -420,7 +429,7 @@ class Interpreter
 	end
 
 	fun exec_or(instr: Instruction) do
-		var op_val = resolve_opernd_value(instr)
+		var op_val = resolve_opernd_value(instr, 2)
 		var reg: Register
 
 		if instr.suffix == "A" then
@@ -440,7 +449,7 @@ class Interpreter
 		var cmp_value: Int
 		var cmp_reg = instr.suffix
 
-		cmp_value = resolve_opernd_value(instr)
+		cmp_value = resolve_opernd_value(instr, 2)
 
 		if cmp_reg == "A" then
 			reg_sub(reg_file.a.value, cmp_value)
@@ -453,7 +462,7 @@ class Interpreter
 
 	fun exec_ld(instr: Instruction) do
 
-		var value = resolve_opernd_value(instr)
+		var value = resolve_opernd_value(instr, 2)
 
 		if instr.suffix == "A" then
 			reg_file.a.value = value
@@ -465,9 +474,7 @@ class Interpreter
 	end
 
 	fun exec_ldbyte(instr: Instruction) do
-
-		var addr = resolve_addr(instr)
-		var value = read_byte(addr)
+		var value = resolve_opernd_value(instr, 1)
 
 		if instr.suffix == "A" then
 			reg_file.a.value = value
@@ -499,7 +506,7 @@ class Interpreter
 	end
 
 	fun exec_deco(instr: Instruction) do
-		printn resolve_opernd_value(instr)
+		printn resolve_opernd_value(instr, 2)
 	end
 
 	fun exec_stro(instr: Instruction) do
