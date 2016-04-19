@@ -103,7 +103,7 @@
 		{
 			"__class": "DebuggerCommand",
 			"command_str": "run",
-			"is_execution_cmd": false,
+			"is_execution_cmd": true,
 			"alternative_names": [],
 			"command_help_str": "run",
 			"help_string": "Run the program",

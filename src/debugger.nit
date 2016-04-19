@@ -84,6 +84,7 @@ class DebuggerCLI
 	var ctrl: DebuggerController
 	var rl = new Readline.with_mode(0)
 	var commands_def: Array[DebuggerCommand] is noinit
+	var last_command: nullable DebuggerCommand = null
 
 	init with_model(model: Pep8Model) do
 		var ctrl = new DebuggerController.with_model(model)
@@ -101,10 +102,8 @@ class DebuggerCLI
 			if sub.has("+") or sub.has("-") or sub.has("/") or sub.has("*") then
 				var proc = new ProcessReader("expr", "sub")
 				sub = proc.read_all.chomp
-				print sub
 			end
 		end
-		print input
 		return input
 	end
 
@@ -145,6 +144,8 @@ class DebuggerCLI
 		end
 
 		var cmd_str = cmd_def.command_str
+
+		last_command = cmd_def
 
 		if tokens.length != cmd_def.nb_tokens then
 			print cmd_def.usage_str
@@ -229,15 +230,21 @@ class DebuggerCLI
 		commands_def = commands
 	end
 
+	fun print_context do
+		print_reg
+		print ctrl.source
+		print ""
+	end
+
 	fun command_loop do
 		var input
 		var with_history = true
-		var last_command = ""
+		var last_cmd
 
 		loop
-			print_reg
-			print ctrl.source
-			print ""
+			last_cmd = last_command
+			if last_cmd != null and last_cmd.is_execution_cmd then print_context
+
 			input = rl.readline("PEPdb> ", with_history)
 
 			# EOF
@@ -245,10 +252,9 @@ class DebuggerCLI
 
 			# Sending an empty line replays the last command
 			if input == "" then
-				parse_command last_command
+				if last_command != null then parse_command last_command.command_str
 			else
 				parse_command input
-				last_command = input
 			end
 		end
 	end
