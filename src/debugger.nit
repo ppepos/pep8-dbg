@@ -1,3 +1,4 @@
+import config
 import interpreter
 import disasm
 import readline
@@ -13,6 +14,8 @@ end
 class DebuggerController
 	var interpreter: DebuggerInterpreter
 	var disasm: Disassembler
+	var src_nb_instr: Int = config_manager.debugger_config.context_nb_instructions
+	var nb_bytes_disass: Int = config_manager.debugger_config.nb_bytes_to_disass
 
 	init with_model(model: Pep8Model) do
 		var reg_file = new Pep8RegisterFile
@@ -39,7 +42,7 @@ class DebuggerController
 	end
 	fun run do self.interpreter.start
 	fun source: String do
-		var nb_lines = 5
+		var nb_lines = src_nb_instr
 		var current_pc = reg_file.pc.value
 
 		var src_instr = interpreter.source_instr(current_pc)
@@ -48,7 +51,9 @@ class DebuggerController
 		var current_instr = disasm.decode_next_instruction(memory(current_pc, 3))
 
 		# Current memory differs from the source, so we use the disassembler instead
-		if src_instr == null or src_instr != current_instr then return disassemble(reg_file.pc.value, 3 * nb_lines)
+		if src_instr == null or src_instr != current_instr then
+			return disassemble(reg_file.pc.value, nb_bytes_disass)
+		end
 
 		var out = ""
 		# Get the next lines from the source file
@@ -82,9 +87,10 @@ end
 
 class DebuggerCLI
 	var ctrl: DebuggerController
-	var rl = new Readline.with_mode(0)
+	var rl = new Readline.with_mode(config_manager.debugger_config.cli_mode)
 	var commands_def: Array[DebuggerCommand] is noinit
 	var last_command: nullable DebuggerCommand = null
+	var context_panels: Array[String] = config_manager.debugger_config.context_panels
 
 	init with_model(model: Pep8Model) do
 		var ctrl = new DebuggerController.with_model(model)
@@ -231,10 +237,19 @@ class DebuggerCLI
 	end
 
 	fun print_context do
-		print_reg
-		print ctrl.source
+		for panel_pos in [0..context_panels.length[ do print_panel(panel_pos)
 		print ""
 	end
+
+	fun print_panel(panel_pos: Int) do
+		if context_panels.has("r") and context_panels[panel_pos] == "r" then
+			print_reg
+		else if context_panels.has("c") and context_panels[panel_pos] == "c" then
+			print ctrl.source
+		end
+	end
+
+
 
 	fun command_loop do
 		var input

@@ -90,7 +90,7 @@ class Pep8Model
 					instructions.push(instr)
 
 					# Source mapping
-					pc_to_src[address] = instr_str
+					pc_to_src[address] = src_line
 					pc_to_instruction[address] = instr
 
 					address += instr.len
