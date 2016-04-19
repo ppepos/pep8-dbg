@@ -70,6 +70,11 @@ class DebuggerCLI
 	fun preprocess_command(input: String): String do
 		for sub in input.split(" ") do
 			if sub.has_prefix("$") then sub = preprocess_replace_register(sub)
+			if sub.has("+") or sub.has("-") or sub.has("/") or sub.has("*") then
+				var proc = new ProcessReader("expr", "sub")
+				sub = proc.read_all.chomp
+				print sub
+			end
 		end
 		print input
 		return input
