@@ -837,6 +837,10 @@ class DebuggerInterpreter
 		return result
 	end
 
+	fun source_line(addr: Int): nullable String do return model.pc_to_src.get_or_null(addr)
+
+	fun source_instr(addr: Int): nullable AbsInstruction do return model.pc_to_instruction.get_or_null(addr)
+
 	fun set_breakpoint(addr: Int) do
 		breakpoints_.add addr
 	end

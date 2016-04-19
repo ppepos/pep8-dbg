@@ -3,7 +3,7 @@ import asm
 class Disassembler
 	var model: Pep8Model
 
-	fun disassemble_stream(byte_stream: Array[Byte], nb_bytes: Int, with_addr: Bool): String
+	fun disassemble_stream(byte_stream: Array[Byte], nb_bytes: Int, with_addr: nullable Bool, base_addr: nullable Int): String
 	do
 		var out = new Array[String]
 		var stream_offset = 0
@@ -13,8 +13,10 @@ class Disassembler
 
 			if inst == null then return out.join("\n")
 
-			if with_addr then
-				out.add "{stream_offset.to_hex} {inst}"
+			if with_addr != null and with_addr then
+				var addr = stream_offset
+				if base_addr != null then addr += base_addr
+				out.add "{addr.to_hex.justify(4, 1.0, '0')} {inst}"
 			else
 				out.add inst.to_s
 			end
@@ -47,8 +49,8 @@ class Disassembler
 	fun decode_opcode(opcode: Byte): nullable Instruction
 	do
 		var inst_def = null
-		var suffix = null
-		var addressing_mode = null
+		var suffix = ""
+		var addressing_mode = ""
 		var op_str
 
 		# Find the instruction definition

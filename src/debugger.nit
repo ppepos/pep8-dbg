@@ -27,9 +27,35 @@ class DebuggerController
 	fun reg_file: Pep8RegisterFile do return interpreter.reg_file
 	fun disassemble(addr, length: Int): String do
 		var mem = memory(addr, length)
-		return self.disasm.disassemble_stream(mem, length, true)
+		return self.disasm.disassemble_stream(mem, length, true, reg_file.pc.value)
 	end
 	fun run do self.interpreter.start
+	fun source: String do
+		var nb_lines = 5
+		var current_pc = reg_file.pc.value
+
+		var src_instr = interpreter.source_instr(current_pc)
+		var src_line = interpreter.source_line(current_pc)
+
+		var current_instr = disasm.decode_next_instruction(memory(current_pc, 3))
+
+		# Current memory differs from the source, so we use the disassembler instead
+		if src_instr == null or src_instr != current_instr then return disassemble(reg_file.pc.value, 3 * nb_lines)
+
+		var out = ""
+		# Get the next lines from the source file
+		for i in [0..nb_lines[ do
+			var out_template = "{current_pc.to_hex.justify(4, 1.0, '0')} "
+			if src_line == null then return out
+			out += out_template + src_line + "\n"
+			current_pc += src_instr.len
+			src_line = interpreter.source_line(current_pc)
+			src_instr = interpreter.source_instr(current_pc)
+		end
+
+		return out
+	end
+
 end
 
 class DebuggerCLI
@@ -196,6 +222,9 @@ class DebuggerCLI
 		var last_command = ""
 
 		loop
+			print_reg
+			print ctrl.source
+			print ""
 			input = rl.readline("PEPdb> ", with_history)
 
 			# EOF

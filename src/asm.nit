@@ -56,6 +56,8 @@ class Pep8Model
 	var instructions = new Array[AbsInstruction]
 	var labels = new HashMap[String, Int]
 	var instruction_set: Array[InstructionDef] is noinit
+	var pc_to_src = new HashMap[Int, String]
+	var pc_to_instruction = new HashMap[Int, AbsInstruction]
 
 	fun load_instruction_set(path: String)
 	do
@@ -86,6 +88,11 @@ class Pep8Model
 
 					var instr = parse_instr(instr_str, address)
 					instructions.push(instr)
+
+					# Source mapping
+					pc_to_src[address] = instr_str
+					pc_to_instruction[address] = instr
+
 					address += instr.len
 				end
 			end
@@ -117,7 +124,7 @@ class Pep8Model
 		var mnemonic = matches[0]
 		var operands = new Array[String]
 		var operand = null
-		var addr_mode = null
+		var addr_mode = ""
 
 		# For dot operations as .WORD, .BYTE, etc.
 		if mnemonic.first.to_s == "." then
@@ -255,29 +262,25 @@ end
 
 class Instruction
 	super AbsInstruction
-	var suffix: nullable String
-	var addr_mode: nullable String
+	var suffix: String
+	var addr_mode: String
 	var operand: nullable Operand
 	var inst_def: InstructionDef
 
 	init (addr: Int, op_str: String, suffix, addr_mode: nullable String, operand: nullable Operand, inst_def: InstructionDef)
 	do
 		self.addr = addr
-		self.op_str = op_str
-		self.suffix = suffix
-		self.addr_mode = addr_mode
+		self.op_str = op_str.to_upper
+		self.suffix = suffix.to_upper
+		self.addr_mode = addr_mode.to_lower
 		self.operand = operand
 		self.inst_def = inst_def
 	end
 
 	redef fun to_s do
-		var suffix = ""
-		var suf_ = self.suffix
-		if suf_ != null then suffix = suf_
-
 		var operands = new Array[String]
 
-		if self.operand != null and self.addr_mode != null then
+		if self.operand != null then
 			operands.add self.operand.to_s
 			operands.add self.addr_mode.to_s
 		end
@@ -293,6 +296,9 @@ class Instruction
 	redef fun assemble: Array[Byte]
 	do
 		var bytes = new Array[Byte]
+
+		# Immediate addressing mode is implicit for branching instructions
+		if (op_str.substring(0, 2) == "BR" or op_str == "CALL") and addr_mode == "" then addr_mode = "i"
 
 		bytes.add(((self.inst_def.bitmask << self.inst_def.bitmask_shift) + self.encode_addressing_mode + encode_suffix).to_b)
 		if not self.inst_def.addr_modes.is_empty then bytes.add_all self.operand.value.to_two_bytes
@@ -336,6 +342,15 @@ class Instruction
 			return 7
 		end
 		return 0
+	end
+
+	redef fun ==(o: nullable Object) do
+		if not o isa Instruction then return false
+		var equals = op_str == o.op_str and suffix == o.suffix and addr_mode == o.addr_mode
+
+		if operand == null then return equals and o.operand == null
+
+		return equals and o.operand != null and operand.value == o.operand.value
 	end
 end
 
