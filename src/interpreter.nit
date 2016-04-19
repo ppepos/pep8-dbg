@@ -6,7 +6,7 @@ class Interpreter
 	var model: Pep8Model
 
 	# Virtual Memory
-	var memory: Array[Byte] = [for x in 65535.times do 0.to_b]
+	var memory: Array[Byte] = [for x in 65536.times do 0.to_b]
 
 	# Registers
 	var reg_file: Pep8RegisterFile
@@ -942,7 +942,8 @@ class DebuggerInterpreter
 		if not self.is_started then return
 
 		loop
-			if reg_file.pc.value == 0 then break
+			if history_index == -1 then break
+			var pc = reg_file.pc.value
 
 			if breakpoints.has(reg_file.pc.value) and not force_continue then break
 
