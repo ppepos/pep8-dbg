@@ -2,6 +2,14 @@ import interpreter
 import disasm
 import readline
 
+redef class Deserializer
+	redef fun deserialize_class(name)
+	do
+		if name == "Array[DebuggerCommand]" then return new Array[DebuggerCommand].from_deserializer(self)
+		return super
+	end
+end
+
 class DebuggerController
 	var interpreter: DebuggerInterpreter
 	var disasm: Disassembler
@@ -58,13 +66,33 @@ class DebuggerController
 
 end
 
+class DebuggerCommand
+	serialize
+	var command_str: String
+	var is_execution_cmd: Bool
+	var alternative_names = new Array[String]
+	var nb_tokens: Int
+	var command_help_str: String
+	var help_string: String
+
+	fun help_str: String do return command_help_str.justify(34, 0.0) + ":   " + help_string.justify(37, 0.0)
+	fun usage_str: String do return "Usage: {command_help_str}"
+	fun is_command(command: String): Bool do return command_str == command or alternative_names.has(command)
+end
+
 class DebuggerCLI
 	var ctrl: DebuggerController
 	var rl = new Readline.with_mode(0)
+	var commands_def: Array[DebuggerCommand] is noinit
 
 	init with_model(model: Pep8Model) do
 		var ctrl = new DebuggerController.with_model(model)
 		init(ctrl)
+	end
+
+	init with_command_file(model: Pep8Model, file_path: String) do
+		load_commands(file_path)
+		with_model(model)
 	end
 
 	fun preprocess_command(input: String): String do
@@ -102,100 +130,53 @@ class DebuggerCLI
 		if tokens.is_empty then return
 
 		var cmd = tokens[0]
+		var cmd_def = null
 
-		if ["b", "break", "breakpoint"].has(cmd) then
-			if tokens.length != 2 or not tokens[1].is_int then
-				print "Usage : {cmd} address"
-			else
-				ctrl.set_breakpoint tokens[1].to_i
+		for command_def in commands_def do
+			if command_def.is_command(cmd) then
+				cmd_def = command_def
+				break
 			end
-		else if ["r", "remove"].has(cmd) then
-			if tokens.length != 2 or not tokens[1].is_int then
-				print "Usage : {cmd} address"
-			else
-				ctrl.remove_breakpoint tokens[1].to_i
-			end
-		else if ["ni", "nexti"].has(cmd) then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				ctrl.nexti
-			end
-		else if ["rev-ni", "rev-nexti"].has(cmd) then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				ctrl.reverse_nexti
-			end
-		else if ["c", "continue"].has(cmd) then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				ctrl.cont
-			end
-		else if ["rev-c", "rev-continue"].has(cmd) then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				ctrl.reverse_cont
-			end
-		else if ["so", "stepo", "stepover"].has(cmd) then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				ctrl.stepo
-			end
-		else if ["reg", "registers"].has(cmd) then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				print_reg
-			end
-		else if ["dump"].has(cmd) then
-			if tokens.length != 3 or not tokens[1].is_int or not tokens[2].is_int then
-				print "Usage : {cmd} address length"
-			else
-				dump_mem(tokens[1].to_i, tokens[2].to_i)
-			end
-		else if ["d", "disass", "disassemble"].has(cmd) then
-			if tokens.length != 3 or not tokens[1].is_int or not tokens[2].is_int then
-				print "Usage : {cmd} address length"
-			else
-				disass(tokens[1].to_i, tokens[2].to_i)
-			end
-		else if cmd == "run" then
-			if tokens.length > 1 then
-				print "Usage : {cmd}"
-			else
-				ctrl.run
-			end
-		else if ["d", "disass", "disassemble"].has(cmd) then
-			if tokens.length != 3 or not tokens[1].is_int or not tokens[2].is_int then
-				print "Usage : {cmd} address length"
-			else
-				disass(tokens[1].to_i, tokens[2].to_i)
-			end
-		else if ["h", "help", "?"].has(cmd) then
-			if tokens.length != 1 then
-				print "Usage : {cmd}"
-			else
-				print_help
-			end
-		else if ["listbp", "list"].has(cmd) then
-			if tokens.length != 1 then
-				print "Usage : {cmd}"
-			else
-				print "Breakpoints : "
-				print ctrl.breakpoints
-			end
-		else if ["q", "quit"].has(cmd) then
-			if tokens.length != 1 then
-				print "Usage: {cmd}"
-			else
-				exit(0)
-			end
-		else
+		end
+
+		if cmd_def == null then
 			print "Unknown command: {cmd}"
+			return
+		end
+
+		var cmd_str = cmd_def.command_str
+
+		if tokens.length != cmd_def.nb_tokens then
+			print cmd_def.usage_str
+		else if cmd_str == "break" then
+			ctrl.set_breakpoint tokens[1].to_i
+		else if cmd_str == "remove" then
+			ctrl.remove_breakpoint tokens[1].to_i
+		else if cmd_str == "nexti" then
+			ctrl.nexti
+		else if cmd_str == "rev-nexti" then
+			ctrl.reverse_nexti
+		else if cmd_str == "continue" then
+			ctrl.cont
+		else if cmd_str == "rev-continue" then
+			ctrl.reverse_cont
+		else if cmd_str == "stepo" then
+			ctrl.stepo
+		else if cmd_str == "regs" then
+			print_reg
+		else if cmd_str == "dump" then
+			dump_mem(tokens[1].to_i, tokens[2].to_i)
+		else if cmd_str == "disass" then
+			disass(tokens[1].to_i, tokens[2].to_i)
+		else if cmd_str == "run" then
+			ctrl.run
+		else if cmd_str == "help" then
+			print_help
+		else if cmd_str == "list" then
+			print "Breakpoints : "
+			print ctrl.breakpoints
+		else if cmd_str == "quit" then
+			exit(0)
 		end
 	end
 
@@ -211,24 +192,14 @@ class DebuggerCLI
 	end
 
 	fun print_help do
-		print "====================================================="
-		print "                    COMMAND LIST"
-		print "====================================================="
-		print "break address         : Add a breakpoint"
-		print "remove address        : Removes a breakpoint"
-		print "list                  : List all breakpoints"
-		print "nexti                 : Break to next instruction"
-		print "rev-nexti             : Break to previous instruction"
-		print "continue              : Resume execution"
-		print "rev-continue          : Resume reverse execution"
-		print "stepo                 : Step over function calls"
-		print "reg                   : Print the registers"
-		print "dump address length   : Dump memory"
-		print "disass address length : Disassemble instructions"
-		print "run                   : Run the program"
-		print "help                  : Print this menu"
-		print "quit                  : Exit the debugger"
-		print "====================================================="
+		var line = "=" * 80
+		print line
+		print "COMMAND LIST".justify(80, 0.5)
+		print line
+		for command in commands_def do
+			print command.help_str
+		end
+		print line
 	end
 
 	fun dump_mem(addr, len: Int) do
@@ -243,6 +214,19 @@ class DebuggerCLI
 
 	fun disass(addr, len: Int) do
 		print ctrl.disassemble(addr, len)
+	end
+
+	fun load_commands(file_path: String) do
+		var fd = new FileReader.open(file_path)
+		var commands_json = fd.read_all
+
+		var deserializer = new JsonDeserializer(commands_json)
+		var commands = deserializer.deserialize
+
+		assert commands isa Array[DebuggerCommand]
+		var cmd = commands[0]
+
+		commands_def = commands
 	end
 
 	fun command_loop do
@@ -280,5 +264,5 @@ var model = new Pep8Model(source_file)
 model.load_instruction_set("src/pep8.json")
 model.read_instructions
 
-var debugger = new DebuggerCLI.with_model(model)
+var debugger = new DebuggerCLI.with_command_file(model, "src/commands.json")
 debugger.command_loop

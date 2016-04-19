@@ -1,0 +1,131 @@
+{
+	"__class": "Array[DebuggerCommand]",
+	"__items": [
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "break",
+			"is_execution_cmd": false,
+			"alternative_names": ["b", "breakpoint"],
+			"command_help_str": "break address",
+			"help_string": "Add a breakpoint",
+			"nb_tokens": 2
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "remove",
+			"is_execution_cmd": false,
+			"alternative_names": ["r"],
+			"command_help_str": "remove address",
+			"help_string": "Removes a breakpoint",
+			"nb_tokens": 2
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "list",
+			"is_execution_cmd": false,
+			"alternative_names": ["listbp"],
+			"command_help_str": "list",
+			"help_string": "List all breakpoints",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "nexti",
+			"is_execution_cmd": true,
+			"alternative_names": ["ni"],
+			"command_help_str": "nexti",
+			"help_string": "Break to next instruction",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "rev-nexti",
+			"is_execution_cmd": true,
+			"alternative_names": ["rev-ni"],
+			"command_help_str": "rev-nexti address",
+			"help_string": "Break to previous instruction",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "continue",
+			"is_execution_cmd": true,
+			"alternative_names": ["c"],
+			"command_help_str": "continue",
+			"help_string": "Resume execution",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "rev-continue",
+			"is_execution_cmd": true,
+			"alternative_names": ["rev-c"],
+			"command_help_str": "rev-continue",
+			"help_string": "Resume reverse execution",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "stepo",
+			"is_execution_cmd": true,
+			"alternative_names": ["so", "stepover"],
+			"command_help_str": "stepo",
+			"help_string": "Step over function calls",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "regs",
+			"is_execution_cmd": false,
+			"alternative_names": ["registers"],
+			"command_help_str": "regs",
+			"help_string": "Print the registers",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "dump",
+			"is_execution_cmd": false,
+			"alternative_names": [],
+			"command_help_str": "dump address length",
+			"help_string": "Dump memory",
+			"nb_tokens": 3
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "disass",
+			"is_execution_cmd": false,
+			"alternative_names": ["d", "disassemble"],
+			"command_help_str": "disass address length",
+			"help_string": "Disassemble instructions",
+			"nb_tokens": 3
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "run",
+			"is_execution_cmd": false,
+			"alternative_names": [],
+			"command_help_str": "run",
+			"help_string": "Run the program",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "help",
+			"is_execution_cmd": false,
+			"alternative_names": ["b", "?"],
+			"command_help_str": "help",
+			"help_string": "Print this menu",
+			"nb_tokens": 1
+		},
+		{
+			"__class": "DebuggerCommand",
+			"command_str": "quit",
+			"is_execution_cmd": false,
+			"alternative_names": [],
+			"command_help_str": "quit",
+			"help_string": "Exit the debugger",
+			"nb_tokens": 1
+		}
+	]
+}
