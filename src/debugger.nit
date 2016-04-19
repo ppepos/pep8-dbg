@@ -67,8 +67,32 @@ class DebuggerCLI
 		init(ctrl)
 	end
 
+	fun preprocess_command(input: String): String do
+		for sub in input.split(" ") do
+			if sub.has_prefix("$") then sub = preprocess_replace_register(sub)
+		end
+		print input
+		return input
+	end
+
+	fun preprocess_replace_register(reg_name: String): String do
+		reg_name = reg_name.substring_from(1)
+		reg_name = reg_name.to_lower
+		if reg_name == "a" then return ctrl.reg_file.a.value.to_s
+		if reg_name == "x" then return ctrl.reg_file.x.value.to_s
+		if reg_name == "pc" then return ctrl.reg_file.pc.value.to_s
+		if reg_name == "sp" then return ctrl.reg_file.sp.value.to_s
+		if reg_name == "n" then return ctrl.reg_file.n.value.to_s
+		if reg_name == "z" then return ctrl.reg_file.z.value.to_s
+		if reg_name == "v" then return ctrl.reg_file.v.value.to_s
+		if reg_name == "c" then return ctrl.reg_file.c.value.to_s
+		return "Cannot recognize register" + reg_name
+	end
+
 	fun parse_command(input: String) do
-		var tokens = input.split(" ")
+		var parsed_input = preprocess_command(input)
+
+		var tokens = parsed_input.split(" ")
 
 		if tokens.is_empty then return
 
