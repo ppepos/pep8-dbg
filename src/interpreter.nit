@@ -979,12 +979,7 @@ class DebuggerInterpreter
 		return diff.apply(self)
 	end
 
-	fun diff_with_modif(instr: Instruction, nb_bytes_written: Int): InstructionDiff do
-		var addr = resolve_addr(instr)
-		return new MemInstructionDiff(reg_file, addr, read_word(addr), nb_bytes_written)
-	end
-
-	fun diff_with_input_reading(instr: Instruction, addr, value_before, nb_bytes_written: Int, old_reg_file: Pep8RegisterFile): InstructionDiff do
+	fun diff_with_input_reading(addr, value_before, nb_bytes_written: Int, old_reg_file: Pep8RegisterFile): InstructionDiff do
 		var new_value
 		if nb_bytes_written == 2 then
 			new_value = read_word(addr)
@@ -995,9 +990,22 @@ class DebuggerInterpreter
 		return new InputReadingInstructionDiff(old_reg_file, reg_file, addr, value_before, new_value, nb_bytes_written)
 	end
 
-	fun save_diff(diff: InstructionDiff) do
+	fun save_diff(addr, nb_bytes, old_value: nullable Int, old_reg: nullable Pep8RegisterFile) do
+
 		history_index += 1
 		if history_index != history.length then return
+
+		var diff
+
+		if addr != null and nb_bytes != null then
+			if old_value != null and old_reg != null then
+				diff = diff_with_input_reading(addr, old_value, nb_bytes, old_reg)
+			else
+				diff = new MemInstructionDiff(reg_file, addr, read_word(addr), nb_bytes)
+			end
+		else
+			diff = new InstructionDiff(reg_file)
+		end
 
 		diff.modify_pc last_pc
 		history.push(diff)
@@ -1005,57 +1013,57 @@ class DebuggerInterpreter
 
 	redef fun exec_movspa(instr) do
 
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_br(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_breq(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brne(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brge(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brle(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brlt(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brgt(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brv(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_brc(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_call(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
@@ -1067,8 +1075,7 @@ class DebuggerInterpreter
 
 		super
 
-		var diff = diff_with_input_reading(instr, addr, old_value, nb_bytes_written, old_reg_file)
-		save_diff(diff)
+		save_diff(addr, nb_bytes_written, old_value, old_reg_file)
 	end
 
 	redef fun exec_chari(instr) do
@@ -1079,126 +1086,125 @@ class DebuggerInterpreter
 
 		super
 
-		var diff = diff_with_input_reading(instr, addr, old_value, nb_bytes_written, old_reg_file)
-		save_diff(diff)
+		save_diff(addr, nb_bytes_written, old_value, old_reg_file)
 	end
 
 	redef fun exec_charo(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_ret(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_subsp(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_add(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_sub(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_and(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_cp(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_ld(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_ldbyte(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_st(instr) do
 		var nb_bytes_written = 2
-		var diff = diff_with_modif(instr, nb_bytes_written)
-		save_diff(diff)
+		var addr = resolve_addr(instr)
+		save_diff(addr, nb_bytes_written)
 		super
 	end
 
 	redef fun exec_stbyte(instr) do
 		var nb_bytes_written = 1
-		var diff = diff_with_modif(instr, nb_bytes_written)
-		save_diff(diff)
+		var addr = resolve_addr(instr)
+		save_diff(addr, nb_bytes_written)
 		super
 	end
 
 	redef fun exec_deco(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_stro(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_nop(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_movflga(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_not(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_neg(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_asl(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_asr(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_rol(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_ror(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_addsp(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
 	redef fun exec_or(instr) do
-		save_diff(new InstructionDiff(reg_file))
+		save_diff
 		super
 	end
 
