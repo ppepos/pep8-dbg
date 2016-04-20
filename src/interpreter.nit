@@ -725,8 +725,8 @@ class Pep8RegisterFile
 end
 
 
+# This is the basic instruction diff only keeping the registers before execution
 class InstructionDiff
-	# var saved_reg_file: Pep8RegisterFile
 	private var saved_reg_file_: Pep8RegisterFile
 
 	init(reg_file: Pep8RegisterFile) do
@@ -747,6 +747,7 @@ class InstructionDiff
 		interpreter.reg_file = saved_reg_file
 	end
 
+	# Reexecute the instruction
 	fun apply(interpreter: DebuggerInterpreter): Int do
 		return interpreter.execute_instr
 	end
@@ -755,6 +756,7 @@ class InstructionDiff
 
 end
 
+# Diff for the deterministic memory modifying instructions (STr and STBYTEr)
 class MemInstructionDiff
 	super InstructionDiff
 	var affected_address: Int
@@ -779,6 +781,7 @@ class MemInstructionDiff
 
 end
 
+# Diff for the input reading instructions (CHARI and DECI)
 class InputReadingInstructionDiff
 	super MemInstructionDiff
 	var new_value: Int
@@ -790,6 +793,7 @@ class InputReadingInstructionDiff
 		super(old_reg_file, addr, value_before, nb_bytes)
 	end
 
+	# Restore the state after execution
 	redef fun apply(interpreter: DebuggerInterpreter): Int do
 		interpreter.history_index += 1
 		apply_input_trap_diff(interpreter)
@@ -797,7 +801,7 @@ class InputReadingInstructionDiff
 	end
 
 	fun apply_input_trap_diff(interpreter: DebuggerInterpreter) do
-		interpreter.reg_file = new_regs
+		interpreter.reg_file = new_regs.copy
 
 		if nb_bytes_written == 1 then
 			interpreter.write_byte(affected_address, new_value)
@@ -822,8 +826,6 @@ class DebuggerInterpreter
 	var is_started = false
 
 	var history = new Array[InstructionDiff]
-
-	var in_history_mode = false
 
 	var history_index: Int = -1
 
@@ -855,7 +857,6 @@ class DebuggerInterpreter
 		is_started = true
 		force_continue = false
 		is_step_by_step = false
-		in_history_mode = false
 
 		history.clear
 		history_index = -1
