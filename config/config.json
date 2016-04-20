@@ -1,0 +1,12 @@
+{
+	"__class": "Array[Config]",
+	"__items": [
+		{
+			"__class": "DebuggerConfig",
+			"nb_bytes_to_disass": 15,
+			"context_nb_instructions": 10,
+			"cli_mode": 0,
+			"context_panels": ["r", "c"]
+		}
+	]
+}
