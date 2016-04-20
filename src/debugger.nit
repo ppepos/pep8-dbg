@@ -154,9 +154,17 @@ class DebuggerCLI
 		if tokens.length != cmd_def.nb_tokens then
 			print cmd_def.usage_str
 		else if cmd_str == "break" then
-			ctrl.set_breakpoint tokens[1].to_i
+			if tokens[1].is_int then
+				ctrl.set_breakpoint tokens[1].to_i
+			else
+				print cmd_def.usage_str
+			end
 		else if cmd_str == "remove" then
-			ctrl.remove_breakpoint tokens[1].to_i
+			if tokens[1].is_int then
+				ctrl.remove_breakpoint tokens[1].to_i
+			else
+				print cmd_def.usage_str
+			end
 		else if cmd_str == "nexti" then
 			ctrl.nexti
 		else if cmd_str == "rev-nexti" then
@@ -170,9 +178,17 @@ class DebuggerCLI
 		else if cmd_str == "regs" then
 			print_reg
 		else if cmd_str == "dump" then
-			dump_mem(tokens[1].to_i, tokens[2].to_i)
+			if tokens[1].is_int and tokens[2].is_int then
+				dump_mem(tokens[1].to_i, tokens[2].to_i)
+			else
+				print cmd_def.usage_str
+			end
 		else if cmd_str == "disass" then
-			disass(tokens[1].to_i, tokens[2].to_i)
+			if tokens[1].is_int and tokens[2].is_int then
+				disass(tokens[1].to_i, tokens[2].to_i)
+			else
+				print cmd_def.usage_str
+			end
 		else if cmd_str == "run" then
 			ctrl.run
 		else if cmd_str == "help" then
