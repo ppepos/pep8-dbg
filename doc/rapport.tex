@@ -85,7 +85,7 @@ binaire à l'interpréteur.
 Pour réaliser le débogueur, il est impératif de construire un
 environnement d'exécution de code machine PEP/8 qui offre la flexibilité
 nécessaire pour y ajouter les fonctionnalités de débogage mentionnées
-ci-haut. L'interpréteur va effectuer une capture d'informations,
+ci-haut. L'interpréteur va effectuer des captures d'états,
 lesquelles seront utilisées par le débogueur afin d'effectuer
 l'exécution inverse du programme.
 
@@ -136,14 +136,14 @@ De cette façon, il ne faut pas garder un historique des états
 d'exécution du programme. Il faut uniquement pouvoir passer du programme
 d'origine au programme inverse. Bien entendu, il doit y avoir capture
 d'états dans le cas où des appels non déterministes sont effectués, mais
-c'est le cas de toutes les approches que nous avons étudié.
+c'est le cas de toutes les approches que nous avons étudiées.
 
 Le troisième article est An Efficient and Generic Reversible Debugger
 using the Virtual Machine based Approach (2005) par Koju et al\cite{Koju-2005}. La
 technique qu'ils emploient se base sur deux modes d'exécution afin de ne
 pas occasionner de surcoût en performance pour un utilisateur qui veut
-exécuter le programme sans effectuer de débogage. Celui-ci peut changer
-vers un mode débogage lorsqu'il le souhaite. Ce qui nous intéresse
+exécuter le programme sans effectuer de débogage à reculons. Celui-ci peut changer
+vers un mode débogage à reculons lorsqu'il le souhaite. Ce qui nous intéresse
 particulièrement dans cet article est la capture d'états effectués à
 intervalle de temps dynamiquement ajusté selon une mesure de la durée
 requise pour la capture d'état et le surcoût toléré. Pour effectuer
@@ -168,21 +168,24 @@ d'historique pour le débogage à reculons.
 
 \subsection{Débogueur}\label{duxe9bogueur}
 
-Nous avons opté d'implémenter notre débogueur avec une approche de
-machine virtuelle. C'est à dire, d'introduire les mécanismes qui
+Nous avons opté pour implémenter notre débogueur avec une approche de
+machine virtuelle, c'est-à-dire d'introduire les mécanismes qui
 permettent le débogage du programme à l'intérieur même de son
 environnement d'exécution. Ceci nous permet de plus facilement
 intercepter les implémentations des différentes instructions assembleurs
 afin d'exécuter les routines de vérifications du débogueur. Autrement,
-nous aurions dût attacher notre débogueur au processus en cours
-d'exécution et d'y injecter des instructions binaires pour arriver au
+nous aurions dû attacher notre débogueur au processus en cours
+d'exécution et y injecter des instructions binaires pour arriver au
 même résultat.
 
 Les mécanismes que nous avons implémentés dans le débogueur sont les
 suivants: la gestion de points d'arrêt et la reprise d'exécution,
 l'exécution pas-à-pas, l'inspection de registres et de l'état de la
 mémoire ainsi que le désassemblage dynamique des octets en mémoire.
-Fonctionnalité d'exécution à reculons Nous avons choisi d'implémenter le
+
+\subsection{Fonctionnalité d'exécution à reculons}\label{fonctionnalite-dexecution-a-reculons}
+
+Nous avons choisi d'implémenter le
 débogage à reculons en sauvegardant l'effet de chaque instruction
 exécuté dans un historique d'exécution. En assembleur \emph{PEP/8},
 chaque instruction peut modifier au maximum un mot de deux octets en
