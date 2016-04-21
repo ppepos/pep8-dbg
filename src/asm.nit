@@ -392,8 +392,7 @@ class PseudoInstruction
 			return new Array[Byte].filled_with(0.to_b, self.value.to_i)
 		else if self.op_str == ".BYTE" then
 			var value = new Array[Byte]
-			# TODO: Remove value.has when is_int function will be fixed
-			if self.value.is_int and not self.value.has("'") then
+			if self.value.is_int then
 				value.add self.value.to_i.to_b
 			else
 				var str = self.value.str_to_bytes
@@ -402,8 +401,7 @@ class PseudoInstruction
 			return value
 		else if self.op_str == ".WORD" then
 			var value = new Array[Byte]
-			# TODO: Remove value.has when is_int function will be fixed
-			if self.value.is_int and not self.value.has("'") then
+			if self.value.is_int then
 				value = self.value.to_i.to_two_bytes
 			else
 				var str = self.value.str_to_bytes
