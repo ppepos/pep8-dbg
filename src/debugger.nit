@@ -1,7 +1,7 @@
-import config
+import config_
 import interpreter
 import disasm
-import readline
+import readline_
 
 redef class Deserializer
 	redef fun deserialize_class(name)

@@ -1,4 +1,4 @@
-module readline is ldflags "-L/usr/local/lib -I/usr/local/include -lreadline"
+module readline_ is ldflags "-L/usr/local/lib -I/usr/local/include -lreadline"
 
 in "C" `{
 	#include <readline/readline.h>
@@ -6,7 +6,7 @@ in "C" `{
 `}
 
 class Readline
-	private fun native_readline(message: NativeString): NativeString `{
+	private fun native_readline(message: CString): CString `{
 		char *line_read = readline(message);
 
 		// End of file
@@ -15,7 +15,7 @@ class Readline
 		return line_read;
 	`}
 
-	private fun native_add_history(data: NativeString) `{
+	private fun native_add_history(data: CString) `{
 		if (data == NULL) return;
 		add_history(data);
 	`}

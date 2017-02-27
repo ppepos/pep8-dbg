@@ -1,6 +1,6 @@
-module config
+module config_
 
-import json::serialization
+import json::serialization_read
 
 redef class Sys
 	var config_manager = new ConfigManager(program_name.dirname + "/../config/config.json") is lazy

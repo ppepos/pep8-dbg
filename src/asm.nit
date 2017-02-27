@@ -1,4 +1,4 @@
-import json::serialization
+import json::serialization_read
 
 redef class Deserializer
 	redef fun deserialize_class(name)
